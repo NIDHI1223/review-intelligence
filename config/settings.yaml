@@ -1,0 +1,100 @@
+# Review Intelligence Platform — configuration
+# Apps under study. IDs are resolved/verified at collection time via official
+# search endpoints; the values here are seeds and get overwritten in the manifest
+# if resolution disagrees.
+
+apps:
+  zepto:
+    display_name: "Zepto"
+    play_store_query: "zepto grocery delivery"
+    play_store_id: "com.zeptoconsumerapp"
+    app_store_query: "zepto"
+  blinkit:
+    display_name: "Blinkit"
+    play_store_query: "blinkit grocery delivery"
+    play_store_id: "com.grofers.customerapp"
+    app_store_query: "blinkit"
+  instamart:
+    display_name: "Swiggy Instamart"
+    play_store_query: "swiggy instamart"
+    play_store_id: "in.swiggy.android.instamart"
+    app_store_query: "swiggy instamart"
+
+collection:
+  country: "in"
+  play_store:
+    languages: ["en", "hi"]
+    reviews_per_app_per_lang: 2000
+    request_delay_seconds: 1.0
+  app_store:
+    countries: ["in"]
+    max_rss_pages: 10 # 50 reviews/page, RSS caps at ~500 recent
+    request_delay_seconds: 1.5
+  reddit:
+    subreddits:
+      [
+        "india",
+        "indiasocial",
+        "bangalore",
+        "mumbai",
+        "delhi",
+        "pune",
+        "hyderabad",
+        "gurgaon",
+        "personalfinanceindia",
+        "IndianFood",
+      ]
+    queries:
+      [
+        "zepto",
+        "blinkit",
+        "swiggy instamart",
+        "quick commerce",
+        "10 minute delivery",
+        "grocery delivery app",
+      ]
+    posts_per_query: 100
+    max_comments_per_post: 60
+    request_delay_seconds: 1.0
+  youtube:
+    queries:
+      [
+        "zepto app review",
+        "zepto vs blinkit",
+        "blinkit review",
+        "swiggy instamart review",
+        "quick commerce india",
+        "zepto grocery haul",
+      ]
+    videos_per_query: 8
+    comments_per_video: 200
+    request_delay_seconds: 0.5
+
+processing:
+  min_chars: 8
+  languages_kept: ["en", "hi", "unknown"] # hinglish usually detects as en/hi/unknown
+  near_dup_cosine_threshold: 0.95
+  embedding_model: "paraphrase-multilingual-MiniLM-L12-v2"
+  umap:
+    n_neighbors: 15
+    n_components: 8
+    min_dist: 0.0
+  hdbscan:
+    min_cluster_size: 25
+    min_samples: 5
+
+llm:
+  model: "claude-opus-4-8"
+  enrichment_reviews_per_request: 20
+  max_batch_wait_minutes: 90
+
+insights:
+  min_support_count: 5
+  max_quote_words: 60
+
+validation:
+  confidence_weights:
+    volume: 0.35
+    source_diversity: 0.25
+    recency: 0.15
+    consistency: 0.25

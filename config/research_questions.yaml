@@ -1,0 +1,22 @@
+research_questions:
+  - id: RQ1
+    question: "Why do users repeatedly buy from the same categories?"
+    signals: [habit, repeat_purchase, category_loyalty, convenience]
+  - id: RQ2
+    question: "What prevents exploration of new categories?"
+    signals: [trust_barrier, price_concern, quality_concern, freshness_concern, awareness_gap]
+  - id: RQ3
+    question: "How are new products discovered today?"
+    signals: [discovery, recommendation, search_behavior, promotion_response, social_influence]
+  - id: RQ4
+    question: "What role do habits play in purchase behavior?"
+    signals: [habit, routine, default_behavior, reorder]
+  - id: RQ5
+    question: "What information is missing before users try a new category?"
+    signals: [information_gap, quality_concern, sizing_uncertainty, authenticity_concern, review_seeking]
+  - id: RQ6
+    question: "Which user segments are more experimental?"
+    signals: [experimentation, early_adopter, deal_seeker, segment_signal]
+  - id: RQ7
+    question: "What unmet needs consistently appear?"
+    signals: [unmet_need, feature_request, assortment_gap, service_gap]
