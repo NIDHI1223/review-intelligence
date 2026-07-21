@@ -6,6 +6,7 @@
     rip enrich              LLM enrichment via Message Batches
     rip cluster             embed + cluster
     rip insights            generate + validate insights
+    rip categorize          per-question categories; classify every pooled review
     rip report              write research question + limitations reports
 """
 
@@ -24,13 +25,25 @@ console = Console()
 
 def _collection_params() -> dict:
     s = config.settings()
+    apps = dict(s["apps"])
+    youtube = s["collection"]["youtube"]
+    # ponytail: RIP_APPS=zepto[,blinkit...] scopes a run to a subset. Filters the app-keyed
+    # collectors (play/app store) and narrows YouTube queries to ones naming a kept app.
+    only = config.env("RIP_APPS")
+    if only:
+        keys = {k.strip().lower() for k in only.split(",")}
+        apps = {k: v for k, v in apps.items() if k.lower() in keys}
+        names = {n.lower() for k, v in apps.items() for n in (k, v["display_name"])}
+        youtube = dict(youtube)
+        youtube["queries"] = [q for q in youtube["queries"]
+                              if any(n in q.lower() for n in names)]
     return {
-        "apps": s["apps"],
+        "apps": apps,
         "country": s["collection"]["country"],
         "play": s["collection"]["play_store"],
         "app_store": s["collection"]["app_store"],
         "reddit": s["collection"]["reddit"],
-        "youtube": s["collection"]["youtube"],
+        "youtube": youtube,
     }
 
 
@@ -128,6 +141,16 @@ def insights() -> None:
     store = Store()
     run_insight_generation(store)
     run_validation(store)
+
+
+@app.command()
+def categorize(
+    estimate_only: bool = typer.Option(False, help="Print cost estimate and exit"),
+) -> None:
+    """Discover per-question answer categories and classify every pooled review."""
+    from .agents.intelligence.rq_categories import run_rq_categorization
+
+    run_rq_categorization(Store(), estimate_only=estimate_only)
 
 
 @app.command()

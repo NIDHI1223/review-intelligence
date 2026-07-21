@@ -12,12 +12,14 @@ from dotenv import load_dotenv
 
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
 CONFIG_DIR = PROJECT_ROOT / "config"
-DATA_DIR = PROJECT_ROOT / "data"
+# ponytail: RIP_DATA_DIR redirects the whole corpus (e.g. a v2 run) without touching data/;
+# everything below derives from DATA_DIR, so one override moves it all. Reports follow suit.
+DATA_DIR = Path(os.environ["RIP_DATA_DIR"]) if os.environ.get("RIP_DATA_DIR") else PROJECT_ROOT / "data"
 RAW_DIR = DATA_DIR / "raw"
 INTERIM_DIR = DATA_DIR / "interim"
 PROCESSED_DIR = DATA_DIR / "processed"
 INSIGHTS_DIR = DATA_DIR / "insights"
-REPORTS_DIR = PROJECT_ROOT / "reports"
+REPORTS_DIR = DATA_DIR / "reports" if os.environ.get("RIP_DATA_DIR") else PROJECT_ROOT / "reports"
 DB_PATH = DATA_DIR / "rip.db"
 
 load_dotenv(PROJECT_ROOT / ".env")

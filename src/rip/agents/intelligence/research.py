@@ -1,24 +1,81 @@
-"""ResearchAgent — renders the final deliverables from VALIDATED insights only:
+"""ResearchAgent — renders the final deliverables:
 
-  reports/research_report.md   evidence-backed answers to the 7 RQs
+  reports/research_report.md   per-question data-derived categories with the
+                               reviews that belong to each, plus a deduped
+                               appendix of validated insight claims
+  reports/rq_categories.json   full category membership (every review id)
   reports/limitations.md       transparent account of gaps, caps, and drops
 """
 
 from __future__ import annotations
 
-from collections import defaultdict
+import json
+from collections import Counter, defaultdict
 from datetime import datetime
 
 from rich.console import Console
 
 from ...core import config
-from ...core.models import Insight, RunManifest, utcnow
+from ...core.models import Insight, RawDocument, RQCategory, RunManifest, utcnow
 from ...core.storage import Store, new_run_id
 
 console = Console()
 
 SOURCE_NAMES = {"play_store": "Google Play", "app_store": "App Store",
                 "reddit": "Reddit", "youtube": "YouTube", "web": "Web"}
+
+
+def _source_tag(raw: RawDocument | None) -> str:
+    if not raw:
+        return "?"
+    src = SOURCE_NAMES.get(raw.source, raw.source)
+    app = f", {raw.app}" if raw.app else ""
+    rating = f", {raw.rating}★" if raw.rating else ""
+    return f"{src}{app}{rating}"
+
+
+def _pick_examples(store: Store, ids: list[str], k: int = 3) -> list[RawDocument]:
+    """Short, verbatim-quotable members — one per app where possible."""
+    raws = [r for r in (store.get_raw(i) for i in ids) if r and len(r.text.strip()) >= 40]
+    raws.sort(key=lambda r: len(r.text))
+    picked: list[RawDocument] = []
+    seen_apps: set = set()
+    for r in raws:
+        if r.app not in seen_apps:
+            picked.append(r)
+            seen_apps.add(r.app)
+        if len(picked) == k:
+            return picked
+    for r in raws:
+        if all(p.id != r.id for p in picked):
+            picked.append(r)
+            if len(picked) == k:
+                break
+    return picked
+
+
+def _fmt_category(store: Store, cat: RQCategory, idx: int) -> str:
+    n = len(cat.member_ids)
+    pct = f" · {100 * n / cat.pool_size:.0f}% of pool" if cat.pool_size else ""
+    lines = [
+        f"#### {idx}. {cat.name} — {n} reviews{pct}",
+        "",
+        f"_{cat.description}_",
+    ]
+    apps = Counter((store.get_raw(m).app or "general") if store.get_raw(m) else "?"
+                   for m in cat.member_ids)
+    if apps:
+        lines.append("- **Apps:** " + " · ".join(f"{a}: {c}" for a, c in apps.most_common()))
+    for raw in _pick_examples(store, cat.member_ids):
+        text = " ".join(raw.text.split())
+        text = text[:220] + ("…" if len(text) > 220 else "")
+        lines.append(f'  > "{text}" — `{raw.id}` ({_source_tag(raw)})')
+    preview = ", ".join(cat.member_ids[:12])
+    more = n - 12
+    lines.append(f"- <sub>Members: {preview}{f' … +{more} more' if more > 0 else ''} "
+                 f"(full list in rq_categories.json)</sub>")
+    lines.append("")
+    return "\n".join(lines)
 
 
 def _fmt_insight(store: Store, ins: Insight, idx: int) -> str:
@@ -28,7 +85,8 @@ def _fmt_insight(store: Store, ins: Insight, idx: int) -> str:
         "",
         f"- **Confidence {conf.score:.2f}** — volume {conf.volume:.2f} · "
         f"source diversity {conf.source_diversity:.2f} · recency {conf.recency:.2f} · "
-        f"consistency {conf.consistency:.2f}",
+        f"consistency {conf.consistency:.2f}"
+        + (f" · informs {', '.join(ins.research_questions)}" if ins.research_questions else ""),
         f"- **Support:** {ins.support_count} documents"
         + (f" · apps: {', '.join(ins.apps)}" if ins.apps else "")
         + (f" · segments: {', '.join(ins.segments)}" if ins.segments else ""),
@@ -55,20 +113,28 @@ def run_research_report(store: Store) -> RunManifest:
     validated = list(store.iter_insights(validated_only=True))
     rejected = [i for i in store.iter_insights() if not i.validated]
     counts = store.raw_counts()
+
+    # RIP_APPS scopes the report to those apps' documents and insights,
+    # matching the scope the categorize stage pooled with
+    only = config.env("RIP_APPS")
+    scope = {a.strip().lower() for a in only.split(",")} if only else None
+    if scope:
+        counts = {k: v for k, v in counts.items()
+                  if k.split("/", 1)[1].lower() in scope}
+        validated = [i for i in validated
+                     if scope & {a.lower() for a in i.apps}]
     total = sum(counts.values())
 
-    by_rq: dict[str, list[Insight]] = defaultdict(list)
-    general: list[Insight] = []
+    by_rq: dict[str, list[Insight]] = defaultdict(list)  # fallback path only
     for ins in validated:
-        if ins.research_questions:
-            for rq in ins.research_questions:
-                by_rq[rq].append(ins)
-        else:
-            general.append(ins)
+        for rq in ins.research_questions:
+            by_rq[rq].append(ins)
 
     # ---------------- research report ----------------
+    apps_label = " · ".join(a.title() for a in sorted(scope)) if scope \
+        else "Zepto · Blinkit · Instamart"
     out = [
-        "# Review Intelligence Report — Quick Commerce (Zepto · Blinkit · Instamart)",
+        f"# Review Intelligence Report — Quick Commerce ({apps_label})",
         "",
         f"_Generated {datetime.now():%Y-%m-%d %H:%M} · corpus of {total:,} public documents · "
         f"every insight below survived verbatim-citation validation; counter-evidence shown "
@@ -84,25 +150,62 @@ def run_research_report(store: Store) -> RunManifest:
     out.append(f"| **Total** | **{total:,}** |")
     out.append("")
 
+    cats_by_rq: dict[str, list[RQCategory]] = defaultdict(list)
+    for cat in store.iter_rq_categories():
+        cats_by_rq[cat.rq_id].append(cat)
+
     for rq in config.research_questions():
-        insights = sorted(by_rq.get(rq["id"], []), key=lambda i: -i.confidence.score)
         out.append(f"## {rq['id']}: {rq['question']}")
         out.append("")
+        cats = sorted((c for c in cats_by_rq.get(rq["id"], []) if c.member_ids),
+                      key=lambda c: -len(c.member_ids))
+        if cats:
+            assigned = sum(len(c.member_ids) for c in cats)
+            out.append(f"_{assigned:,} of {cats[0].pool_size:,} pooled reviews classified "
+                       f"into {len(cats)} categories derived from this question's data; "
+                       f"the remainder fit none of them._")
+            out.append("")
+            for idx, cat in enumerate(cats, 1):
+                out.append(_fmt_category(store, cat, idx))
+            continue
+        # fallback for corpora where `rip categorize` hasn't run yet
+        insights = sorted(by_rq.get(rq["id"], []), key=lambda i: -i.confidence.score)
         if not insights:
-            out.append("_No validated insight cleared the evidence bar for this question — "
-                       "see limitations report._\n")
+            out.append("_No categories yet (run `rip categorize`) and no validated insight "
+                       "cleared the evidence bar for this question — see limitations report._\n")
             continue
         for idx, ins in enumerate(insights, 1):
             out.append(_fmt_insight(store, ins, idx))
 
-    if general:
-        out.append("## Additional validated insights (not mapped to an RQ)")
+    if validated:
+        out.append("## Appendix — validated evidence-backed claims")
         out.append("")
-        for idx, ins in enumerate(sorted(general, key=lambda i: -i.confidence.score), 1):
+        out.append("_Each claim listed once, with the research questions it informs._")
+        out.append("")
+        ranked = sorted(validated, key=lambda i: -i.confidence.score)
+        for idx, ins in enumerate(ranked, 1):
             out.append(_fmt_insight(store, ins, idx))
 
     report_path = config.REPORTS_DIR / "research_report.md"
     report_path.write_text("\n".join(out))
+
+    # full category membership for traceability — every review id, no preview cap
+    questions = {rq["id"]: rq["question"] for rq in config.research_questions()}
+    cats_dump = {
+        rq_id: {
+            "question": questions.get(rq_id, ""),
+            "pool_size": cats[0].pool_size if cats else 0,
+            "categories": [
+                {"name": c.name, "description": c.description,
+                 "count": len(c.member_ids), "member_ids": c.member_ids}
+                for c in sorted(cats, key=lambda c: -len(c.member_ids))
+            ],
+        }
+        for rq_id, cats in cats_by_rq.items()
+    }
+    if cats_dump:
+        (config.REPORTS_DIR / "rq_categories.json").write_text(
+            json.dumps(cats_dump, indent=1))
 
     # ---------------- limitations report ----------------
     lim = [
@@ -152,6 +255,9 @@ def run_research_report(store: Store) -> RunManifest:
         "- Public reviews are self-selected feedback, not a representative user sample.",
         "- Sentiment and behavioral tags are model-generated (tag audit trail: model + "
         "prompt version stamped on every enriched record).",
+        "- Per-question categories and their review membership are model-generated "
+        "single-label classifications over each question's signal pool; reviews the "
+        "classifier judged to fit no category are counted but not listed.",
         "- Segment hints derive only from what reviewers explicitly stated.",
     ]
     lim_path = config.REPORTS_DIR / "limitations.md"

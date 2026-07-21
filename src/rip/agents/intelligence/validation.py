@@ -124,6 +124,8 @@ def run_validation(store: Store) -> RunManifest:
         diversity = min(1.0, len(sources) / 2)
         dates = [raws[rid].created_at for rid in ins.supporting_review_ids
                  if raws.get(rid) and raws[rid].created_at]
+        # ponytail: collectors emit naive datetimes; coerce to UTC to compare with aware `now`
+        dates = [d if d.tzinfo else d.replace(tzinfo=timezone.utc) for d in dates]
         recent = sum(1 for d in dates if now - d <= timedelta(days=365))
         recency = recent / len(dates) if dates else 0.5
         consistency = ins.support_count / (ins.support_count + len(contradicting))

@@ -36,4 +36,5 @@ This platform never fabricates data. Everything it could not access or verify is
 
 - Public reviews are self-selected feedback, not a representative user sample.
 - Sentiment and behavioral tags are model-generated (tag audit trail: model + prompt version stamped on every enriched record).
+- Per-question categories and their review membership are model-generated single-label classifications over each question's signal pool; reviews the classifier judged to fit no category are counted but not listed.
 - Segment hints derive only from what reviewers explicitly stated.
