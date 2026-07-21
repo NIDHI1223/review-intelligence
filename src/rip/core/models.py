@@ -111,6 +111,19 @@ class Cluster(BaseModel):
     top_terms: list[str] = Field(default_factory=list)
 
 
+class RQCategory(BaseModel):
+    """One data-derived answer category for a research question, holding every
+    pooled review the classifier assigned to it. Discovered fresh per question
+    by RQCategoryAgent — not a shared taxonomy."""
+
+    rq_id: str  # RQ1..RQ7
+    index: int  # 1-based position in the category list shown to the classifier
+    name: str
+    description: str = ""
+    pool_size: int = 0  # size of the RQ pool the members were classified from
+    member_ids: list[str] = Field(default_factory=list)
+
+
 class Quote(BaseModel):
     review_id: str
     quote: str  # must appear VERBATIM in the raw document text

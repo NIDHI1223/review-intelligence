@@ -22,6 +22,8 @@ PROCESSING     CleaningAgent → DedupAgent → EnrichmentAgent (Claude, batched
       ↓
 INTELLIGENCE   InsightAgent (cited claims) → ValidationAgent (verbatim-quote
                verification, contradiction retrieval, confidence rubric)
+               → RQCategoryAgent (per-question categories discovered from the
+               data; every pooled review classified into one)
       ↓
 OUTPUTS        reports/research_report.md · reports/limitations.md
 ```
@@ -61,6 +63,7 @@ PYTHONPATH=src .venv/bin/python -m rip.cli enrich --estimate-only  # cost previe
 PYTHONPATH=src .venv/bin/python -m rip.cli enrich
 PYTHONPATH=src .venv/bin/python -m rip.cli cluster
 PYTHONPATH=src .venv/bin/python -m rip.cli insights
+PYTHONPATH=src .venv/bin/python -m rip.cli categorize   # per-question categories, full-pool classification
 PYTHONPATH=src .venv/bin/python -m rip.cli report
 ```
 

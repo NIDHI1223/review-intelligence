@@ -19,6 +19,7 @@ from .models import (
     Insight,
     ProcessedDocument,
     RawDocument,
+    RQCategory,
     RunManifest,
 )
 
@@ -46,6 +47,11 @@ CREATE TABLE IF NOT EXISTS clusters (
 CREATE TABLE IF NOT EXISTS insights (
     insight_id TEXT PRIMARY KEY,
     validated INTEGER NOT NULL,
+    payload TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS rq_categories (
+    key TEXT PRIMARY KEY,
+    rq_id TEXT NOT NULL,
     payload TEXT NOT NULL
 );
 CREATE TABLE IF NOT EXISTS manifests (
@@ -95,6 +101,11 @@ class Store:
             "SELECT payload FROM raw_documents WHERE id = ?", (doc_id,)
         ).fetchone()
         return RawDocument.model_validate_json(row[0]) if row else None
+
+    def ids_for_apps(self, apps: set[str]) -> set[str]:
+        q = ",".join("?" * len(apps))
+        return {r[0] for r in self.conn.execute(
+            f"SELECT id FROM raw_documents WHERE lower(app) IN ({q})", tuple(apps))}
 
     def raw_counts(self) -> dict[str, int]:
         rows = self.conn.execute(
@@ -186,6 +197,24 @@ class Store:
             q += " WHERE validated = 1"
         for (payload,) in self.conn.execute(q):
             yield Insight.model_validate_json(payload)
+
+    # ---------- rq categories ----------
+
+    def replace_rq_categories(self, cats: Iterable[RQCategory]) -> int:
+        self.conn.execute("DELETE FROM rq_categories")
+        n = 0
+        for cat in cats:
+            self.conn.execute(
+                "INSERT INTO rq_categories (key, rq_id, payload) VALUES (?, ?, ?)",
+                (f"{cat.rq_id}:{cat.index}", cat.rq_id, cat.model_dump_json()),
+            )
+            n += 1
+        self.conn.commit()
+        return n
+
+    def iter_rq_categories(self) -> Iterator[RQCategory]:
+        for (payload,) in self.conn.execute("SELECT payload FROM rq_categories ORDER BY key"):
+            yield RQCategory.model_validate_json(payload)
 
     # ---------- manifests ----------
 
