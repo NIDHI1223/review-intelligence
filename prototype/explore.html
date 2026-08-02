@@ -1,0 +1,210 @@
+<title>NL Zepto — Explore the Research</title>
+<style>
+  :root{
+    --ink:#1b1530; --sub:#726a89; --faint:#a79ec2;
+    --line:#ece7f6; --hair:#f4f0fa;
+    --violet:#5b0fc9; --violet-2:#7a2fe0; --magenta:#e0176e; --plum:#241a42;
+    --lilac:#f4eefe; --app:#ffffff; --appbg:#f7f5fb;
+    --page1:#f3eefb; --page2:#efe9f8;
+    --ai-a:#7a2fe0; --ai-b:#e0176e; --ai-c:#4b7bec;
+    --good:#0d9c5b; --bad:#c02653;
+  }
+  @media (prefers-color-scheme: dark){ :root{ --page1:#141021; --page2:#0f0b1a; } }
+  :root[data-theme="light"]{ --page1:#f3eefb; --page2:#efe9f8; }
+  :root[data-theme="dark"]{ --page1:#141021; --page2:#0f0b1a; }
+  *{box-sizing:border-box; margin:0; padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:radial-gradient(120% 100% at 50% 0%, var(--page1), var(--page2));
+    color:var(--ink); -webkit-font-smoothing:antialiased;
+    display:flex; flex-direction:column; align-items:center; gap:14px; padding:34px 16px 64px; min-height:100vh}
+  .wrap{width:100%; max-width:720px; display:flex; flex-direction:column; gap:14px}
+  .kicker{align-self:center; display:inline-flex; align-items:center; gap:7px; font-size:11px; font-weight:800; letter-spacing:.09em; text-transform:uppercase; color:var(--violet); background:var(--lilac); border:1px solid var(--line); border-radius:30px; padding:5px 13px}
+  .sp{width:15px; height:15px; border-radius:5px; background:conic-gradient(from 200deg,var(--ai-a),var(--ai-c),var(--ai-b),var(--ai-a)); display:grid; place-items:center}
+  .sp::after{content:"✦"; color:#fff; font-size:9px}
+  h1{font-size:26px; font-weight:800; letter-spacing:-.02em; color:var(--plum); text-align:center}
+  .sub{font-size:13.5px; color:var(--sub); line-height:1.55; text-align:center; max-width:560px; align-self:center}
+  .ask{display:flex; gap:9px; background:var(--app); border:1px solid var(--line); border-radius:16px; padding:9px; box-shadow:0 10px 26px rgba(90,40,180,.10)}
+  .ask input{flex:1; border:0; background:none; font:inherit; font-size:14.5px; color:var(--ink); padding:8px 10px}
+  .ask input:focus{outline:none}
+  .ask button{border:0; border-radius:11px; background:var(--violet); color:#fff; font:inherit; font-size:14px; font-weight:800; padding:11px 20px; cursor:pointer}
+  .ask button:hover{background:var(--violet-2)}
+  .chips{display:flex; flex-wrap:wrap; gap:7px; justify-content:center}
+  .chip{border:1px solid var(--line); background:var(--app); color:var(--ink); border-radius:20px; padding:8px 13px; font:inherit; font-size:12.5px; font-weight:600; cursor:pointer; transition:all .16s}
+  .chip:hover{border-color:var(--violet-2); background:var(--lilac); color:var(--violet)}
+  .think{display:flex; align-items:center; gap:11px; padding:16px 4px; justify-content:center; font-size:13px; color:var(--sub); font-weight:600}
+  .dots i{width:6px; height:6px; border-radius:50%; background:var(--violet-2); display:inline-block; margin-right:4px; animation:bounce 1.1s infinite}
+  .dots i:nth-child(2){animation-delay:.15s} .dots i:nth-child(3){animation-delay:.3s}
+  @keyframes bounce{0%,60%,100%{opacity:.3; transform:translateY(0)}30%{opacity:1; transform:translateY(-3px)}}
+  .card{background:var(--app); border:1px solid var(--line); border-radius:16px; padding:18px 20px}
+  .answer{font-size:14.5px; line-height:1.65}
+  .answer p{margin:0 0 10px} .answer p:last-child{margin:0}
+  .answer b{color:var(--plum)}
+  .cite{display:inline-block; font-size:10px; font-weight:800; color:var(--violet); background:var(--lilac); border-radius:8px; padding:1px 6px; margin:0 1px; cursor:pointer; text-decoration:none; vertical-align:2px}
+  .evhead{font-size:11px; font-weight:800; color:var(--violet); text-transform:uppercase; letter-spacing:.06em; margin:2px 0 4px}
+  .rev{background:var(--appbg); border:1px solid var(--line); border-radius:13px; padding:12px 14px; margin-top:8px}
+  .rev .meta{display:flex; gap:6px; align-items:center; flex-wrap:wrap; margin-bottom:6px}
+  .tag{font-size:10px; font-weight:800; border-radius:16px; padding:2px 8px; background:var(--lilac); color:var(--violet)}
+  .tag.pos{background:#e7f7ef; color:var(--good)} .tag.neg{background:#fdecf1; color:var(--bad)}
+  .tag.id{background:transparent; border:1px dashed var(--line); color:var(--faint); font-weight:600}
+  .rev .txt{font-size:13px; line-height:1.55; color:var(--ink)}
+  .err{color:var(--bad); font-size:13px; text-align:center}
+  .foot{font-size:11px; color:var(--faint); text-align:center; line-height:1.55; max-width:560px; align-self:center}
+  a.plain{color:var(--violet); font-weight:700; text-decoration:none}
+</style>
+
+<div class="wrap">
+  <span class="kicker"><span class="sp"></span> NL Zepto · Research Explorer</span>
+  <h1>Ask the research anything</h1>
+  <p class="sub" id="sub">Answers are grounded in real reviews from Play Store, App Store and YouTube, enriched into 144 insights across 10 research questions. Every claim cites the actual review it came from.</p>
+
+  <div class="ask">
+    <input id="q" placeholder="e.g. Which complaints appear most in reviews about discovery?" autocomplete="off"/>
+    <button id="go">Ask</button>
+  </div>
+
+  <div class="chips" id="chips">
+    <button class="chip">Which complaints appear in most reviews about discovery?</button>
+    <button class="chip">Why don't people explore new categories?</button>
+    <button class="chip">What do users love most about 10-minute delivery?</button>
+    <button class="chip">What breaks user trust in the app?</button>
+    <button class="chip">What do delivery partners say about earnings?</button>
+  </div>
+
+  <div id="out"></div>
+
+  <p class="foot">Concept research tool for a product case study. Not affiliated with Zepto. The corpus is a July 2026 snapshot; the AI answers only from this data and cites review IDs you can read below each answer.</p>
+</div>
+
+<script src="research_data.js"></script>
+<script>
+  const D=window.RESEARCH_DATA||{reviews:{},insights:[],cats:[]};
+  document.getElementById('sub').textContent=
+    `Answers are grounded in ${Object.keys(D.reviews).length.toLocaleString('en-IN')} real reviews from Play Store, App Store and YouTube, distilled into ${D.insights.length} insights across ${new Set(D.cats.map(c=>c.rq)).size} research questions. Every claim cites the actual review it came from.`;
+
+  /* ── AI providers: same pattern as smart-missions (keys injected at deploy) ── */
+  let GMODEL='gemini-3.5-flash';
+  const EMBED_KEY='__GEMINI_KEY__', GROQ_KEY='__GROQ_KEY__';
+  const real=k=>k&&k.indexOf('__')!==0?k:'';
+  const qk=new URLSearchParams(location.search).get('key');
+  if(qk) localStorage.setItem('gemini_key',qk);
+  const getKey=()=>real(EMBED_KEY)||localStorage.getItem('gemini_key')||'';
+  let THINK_MODE='minimal';
+  const THINK_CFG={minimal:{thinkingConfig:{thinkingLevel:'minimal'}}, budget:{thinkingConfig:{thinkingBudget:0}}, none:{}};
+
+  async function aiGemini(prompt,_re){
+    const gen=Object.assign({responseMimeType:'application/json',temperature:0.4},THINK_CFG[THINK_MODE]||{});
+    const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+GMODEL+':generateContent?key='+encodeURIComponent(getKey()),{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:gen})});
+    if(!r.ok){
+      const err=await r.json().catch(()=>null);
+      const msg=(err&&err.error&&err.error.message)||('HTTP '+r.status);
+      if(r.status===429||/quota|exceed/i.test(msg)) throw new Error('The AI hit its per-minute limit — wait ~30 seconds and try again.');
+      if(r.status===400&&THINK_MODE!=='none'){THINK_MODE=THINK_MODE==='minimal'?'budget':'none'; return aiGemini(prompt,_re);}
+      throw new Error(msg);
+    }
+    const d=await r.json();
+    const txt=d.candidates[0].content.parts[0].text;
+    try{ return JSON.parse(txt); }
+    catch(e){
+      const m=txt.match(/\{[\s\S]*\}/);
+      if(m){ try{ return JSON.parse(m[0]); }catch(_){} }
+      if(!_re) return aiGemini(prompt,true);
+      throw new Error('AI returned malformed JSON — please try again');
+    }
+  }
+  async function aiGroq(prompt){
+    if(!real(GROQ_KEY)) throw new Error('no groq key configured');
+    const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+      method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY},
+      body:JSON.stringify({model:'llama-3.3-70b-versatile',temperature:0.4,response_format:{type:'json_object'},messages:[{role:'user',content:prompt}]})});
+    if(!r.ok){const e=await r.json().catch(()=>null); throw new Error((e&&e.error&&e.error.message)||('Groq HTTP '+r.status));}
+    const d=await r.json();
+    return JSON.parse(d.choices[0].message.content);
+  }
+  async function ai(prompt){
+    try{ return await aiGemini(prompt); }
+    catch(e){ try{ return await aiGroq(prompt); }catch(_){ throw e; } }
+  }
+
+  /* ── retrieval: cheap keyword scoring over insights, categories, reviews ── */
+  const STOP=new Set('the a an is are was were do does did what which why how who when where about in on of for to with most that this those these there people users user say says most from and or not'.split(' '));
+  const toks=s=>String(s).toLowerCase().replace(/[^a-z0-9ऀ-ॿ ]/g,' ').split(/\s+/).filter(w=>w.length>2&&!STOP.has(w));
+  function score(text,qt){ const t=String(text).toLowerCase(); let s=0; for(const w of qt){ if(t.includes(w)) s++; } return s; }
+  function retrieve(q){
+    const qt=toks(q);
+    const ins=D.insights.map(i=>({i,s:score(i.claim+' '+i.quotes.map(x=>x.q).join(' '),qt)}))
+      .sort((a,b)=>b.s-a.s).slice(0,12).filter(x=>x.s>0).map(x=>x.i);
+    const cats=D.cats.map(c=>({c,s:score(c.name+' '+c.desc,qt)}))
+      .sort((a,b)=>b.s-a.s).slice(0,8).filter(x=>x.s>0).map(x=>x.c);
+    const revs=Object.entries(D.reviews).map(([id,r])=>({id,r,s:score(r.text+' '+(r.t||[]).join(' '),qt)}))
+      .sort((a,b)=>b.s-a.s).slice(0,15).filter(x=>x.s>0);
+    return {ins,cats,revs};
+  }
+
+  function prompt(q,ev){
+    const insTxt=ev.ins.map(i=>`- [${i.id}] (${i.n} reviews) ${i.claim}\n  quotes: `+i.quotes.map(x=>`"${x.q}" [${x.id}]`).join(' | ')).join('\n');
+    const catTxt=ev.cats.map(c=>`- ${c.rq} "${c.name}" (${c.n} reviews): ${c.desc}`).join('\n');
+    const revTxt=ev.revs.map(x=>`- [${x.id}] (${x.r.app||'?'}, ${x.r.s||'?'}) "${x.r.text}"`).join('\n');
+    return `You are the research assistant for "NL Zepto", a study of quick-commerce user reviews (Zepto and peers) scraped from Play Store, App Store and YouTube, then clustered into insights.
+
+Answer the question using ONLY the evidence below. Be specific and quantitative where the data allows (review counts are real). Cite review IDs inline in square brackets exactly as given, e.g. [gp_1a2b] — cite ONLY IDs that appear in the evidence. If the evidence is thin for the question, say so honestly.
+
+QUESTION: "${q}"
+
+RESEARCH INSIGHTS (id, supporting review count, claim, representative quotes):
+${insTxt||'(none matched)'}
+
+DISCOVERED CATEGORIES (research question, name, pool size, description):
+${catTxt||'(none matched)'}
+
+RAW REVIEW SNIPPETS:
+${revTxt||'(none matched)'}
+
+Reply with ONLY this JSON, nothing else:
+{"answer":"2-4 short paragraphs, markdown bold allowed, citations inline like [gp_1a2b]","cited":["every review id you cited, in order"]}`;
+  }
+
+  /* ── render ── */
+  const out=document.getElementById('out'), qin=document.getElementById('q');
+  const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  function renderAnswer(res){
+    const cited=[...new Set((res.cited||[]).filter(id=>D.reviews[id]))];
+    let html=esc(String(res.answer||''));
+    html=html.replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>');
+    html=html.replace(/\[([a-z]{2}_[\w-]+)\]/g,(m,id)=>D.reviews[id]?`<a class="cite" href="#r-${id}">${id.slice(0,10)}…</a>`:'');
+    html='<p>'+html.split(/\n{2,}|\n/).filter(x=>x.trim()).join('</p><p>')+'</p>';
+    const evid=cited.map(id=>{const r=D.reviews[id]; return `
+      <div class="rev" id="r-${id}">
+        <div class="meta">
+          <span class="tag">${esc(r.app||'app')}</span>
+          <span class="tag">${esc(r.src||'source')}</span>
+          ${r.s?`<span class="tag ${r.s==='positive'?'pos':r.s==='negative'?'neg':''}">${esc(r.s)}</span>`:''}
+          <span class="tag id">${esc(id)}</span>
+        </div>
+        <div class="txt">${esc(r.text)}</div>
+      </div>`;}).join('');
+    out.innerHTML=`<div class="card"><div class="answer">${html}</div>
+      ${evid?`<div style="margin-top:14px"><div class="evhead">The actual reviews cited (${cited.length})</div>${evid}</div>`:''}</div>`;
+  }
+
+  let busy=false;
+  async function ask(q){
+    if(!q.trim()||busy) return;
+    if(!getKey()){ out.innerHTML=`<div class="card err">No API key configured — open this page from the published link, or append <b>?key=YOUR_GEMINI_KEY</b> to the URL.</div>`; return; }
+    busy=true;
+    out.innerHTML=`<div class="think"><span>Reading ${Object.keys(D.reviews).length.toLocaleString('en-IN')} reviews</span><span class="dots"><i></i><i></i><i></i></span></div>`;
+    try{
+      const res=await ai(prompt(q,retrieve(q)));
+      renderAnswer(res);
+    }catch(e){
+      out.innerHTML=`<div class="card err">${esc(e.message)} — <a class="plain" href="#" onclick="return false" id="retry">try again</a></div>`;
+      document.getElementById('retry').onclick=()=>{busy=false; ask(q); return false;};
+    }
+    busy=false;
+  }
+  document.getElementById('go').onclick=()=>ask(qin.value);
+  qin.addEventListener('keydown',e=>{if(e.key==='Enter')ask(qin.value);});
+  document.querySelectorAll('#chips .chip').forEach(c=>c.onclick=()=>{qin.value=c.textContent; ask(c.textContent);});
+  qin.focus();
+</script>
