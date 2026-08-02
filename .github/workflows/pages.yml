@@ -1,0 +1,28 @@
+name: deploy-pages
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build site with injected API keys
+        run: |
+          mkdir -p _site
+          cp -r prototype deck _site/
+          sed -i "s|__GEMINI_KEY__|${{ secrets.GEMINI_API_KEY }}|; s|__GROQ_KEY__|${{ secrets.GROQ_API_KEY }}|" _site/prototype/smart-missions.html
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4
