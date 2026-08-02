@@ -1,0 +1,446 @@
+<title>Zepto Smart Missions — Intent-Based Shopping</title>
+<style>
+  :root{
+    --ink:#1b1530; --sub:#726a89; --faint:#a79ec2;
+    --line:#ece7f6; --hair:#f4f0fa;
+    --violet:#5b0fc9; --violet-2:#7a2fe0; --magenta:#e0176e; --plum:#241a42;
+    --lilac:#f4eefe; --lilac-2:#efe6fd;
+    --good:#0d9c5b; --good-soft:#e7f7ef;
+    --app:#ffffff; --appbg:#f7f5fb;
+    --page1:#f3eefb; --page2:#efe9f8;
+    --ai-a:#7a2fe0; --ai-b:#e0176e; --ai-c:#4b7bec;
+    --shadow:0 24px 60px rgba(36,20,72,.18);
+  }
+  @media (prefers-color-scheme: dark){ :root{ --page1:#141021; --page2:#0f0b1a; } }
+  :root[data-theme="light"]{ --page1:#f3eefb; --page2:#efe9f8; }
+  :root[data-theme="dark"]{ --page1:#141021; --page2:#0f0b1a; }
+
+  *{box-sizing:border-box; margin:0; padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:radial-gradient(120% 100% at 50% 0%, var(--page1), var(--page2));
+    color:var(--ink); -webkit-font-smoothing:antialiased;
+    display:flex; flex-direction:column; align-items:center; gap:16px; padding:28px 16px 56px; min-height:100vh;
+  }
+  .intro{max-width:412px; width:100%; text-align:center}
+  .intro .kicker{display:inline-flex; align-items:center; gap:7px; font-size:11px; font-weight:800; letter-spacing:.09em; text-transform:uppercase; color:var(--violet); background:var(--lilac); border:1px solid var(--line); border-radius:30px; padding:5px 13px}
+  .intro h1{font-size:20px; font-weight:800; letter-spacing:-.02em; margin-top:11px; color:var(--plum)}
+  .intro p{font-size:13px; color:var(--sub); line-height:1.55; margin-top:6px}
+
+  .phone{width:412px; max-width:100%; background:var(--app); border-radius:44px; border:7px solid #1c1430; box-shadow:var(--shadow); overflow:hidden; position:relative}
+  .notch{position:absolute; top:0; left:50%; transform:translateX(-50%); width:130px; height:26px; background:#1c1430; border-radius:0 0 18px 18px; z-index:30}
+  .screen{height:812px; overflow-y:auto; scrollbar-width:none; background:var(--appbg); display:flex; flex-direction:column}
+  .screen::-webkit-scrollbar{display:none}
+
+  .appbar{background:var(--app); padding:34px 18px 12px; display:flex; align-items:center; gap:12px; position:sticky; top:0; z-index:20; border-bottom:1px solid var(--line)}
+  .appbar .back{width:30px; height:30px; border-radius:50%; background:var(--lilac); color:var(--violet); display:grid; place-items:center; font-size:17px; flex:none}
+  .appbar .tt{font-size:15px; font-weight:800; color:var(--plum)}
+  .appbar .tt small{display:block; font-size:11px; font-weight:600; color:var(--sub)}
+
+  .content{padding:12px 16px 12px; display:flex; flex-direction:column; gap:12px}
+
+  .deliv{background:linear-gradient(120deg,#241a42,#3a1f7a); color:#fff; border-radius:16px; padding:13px 15px; display:flex; align-items:center; gap:12px}
+  .deliv .di{font-size:22px}
+  .deliv .d1{font-size:14px; font-weight:800}
+  .deliv .d2{font-size:11.5px; opacity:.8; margin-top:1px}
+
+  .card{background:var(--app); border:1px solid var(--line); border-radius:16px; padding:6px 14px}
+  .citem{display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid var(--hair)}
+  .citem:last-child{border-bottom:0}
+  .citem .ce{width:44px; height:44px; border-radius:11px; background:var(--lilac); display:grid; place-items:center; font-size:22px; flex:none}
+  .citem .cmid{flex:1; min-width:0}
+  .citem .cn{font-size:13.5px; font-weight:700; color:var(--ink); line-height:1.2}
+  .citem .cq{font-size:11px; color:var(--sub); margin-top:2px}
+  .citem .cp{font-size:13.5px; font-weight:800; color:var(--plum)}
+  .stepper{display:inline-flex; align-items:center; gap:10px; border:1.5px solid var(--violet); color:var(--violet); border-radius:9px; padding:3px 9px; font-size:12.5px; font-weight:800; margin-bottom:5px}
+  .cright{text-align:right}
+
+  /* ===== collapsible Smart Missions surface ===== */
+  .assist{position:relative; border-radius:18px; background:var(--app); padding:1.4px; box-shadow:0 10px 26px rgba(90,40,180,.12); opacity:0; transform:translateY(10px); animation:rise .6s cubic-bezier(.2,.8,.2,1) .4s forwards}
+  .assist::before{content:""; position:absolute; inset:0; border-radius:18px; padding:1.4px; background:linear-gradient(125deg,var(--ai-a),var(--ai-c) 45%,var(--ai-b)); -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite:xor; mask-composite:exclude; opacity:.85}
+  @keyframes rise{to{opacity:1; transform:translateY(0)}}
+  @media (prefers-reduced-motion:reduce){ .assist{animation:none; opacity:1; transform:none} }
+  .assist-in{position:relative; background:var(--app); border-radius:16.6px; overflow:hidden}
+
+  .ahead{width:100%; display:flex; align-items:center; gap:11px; padding:13px 14px; background:none; border:0; cursor:pointer; font:inherit; text-align:left; color:var(--ink)}
+  .ahead:focus-visible{outline:2px solid var(--violet); outline-offset:-3px; border-radius:16px}
+  .sp{width:24px; height:24px; border-radius:8px; flex:none; background:conic-gradient(from 200deg,var(--ai-a),var(--ai-c),var(--ai-b),var(--ai-a)); display:grid; place-items:center; box-shadow:0 3px 10px rgba(122,47,224,.32)}
+  .sp::after{content:"✦"; color:#fff; font-size:12px}
+  .sp.breathe{animation:breathe 3.4s ease-in-out infinite}
+  @keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.09)}}
+  @media (prefers-reduced-motion:reduce){ .sp.breathe{animation:none} }
+  .ahead .ah-txt{flex:1; min-width:0}
+  .ahead .ah1{display:block; font-size:13.5px; font-weight:800; color:var(--plum); line-height:1.2}
+  .ahead .ah2{display:block; font-size:11.5px; color:var(--sub); margin-top:2px; line-height:1.3}
+  .ahead .ah2 b{color:var(--violet-2); font-weight:700}
+  .chev{color:var(--faint); font-size:15px; transition:transform .3s; flex:none}
+  .assist[data-open="true"] .chev{transform:rotate(180deg)}
+
+  .abody{max-height:0; overflow:hidden; transition:max-height .35s ease}
+  .assist[data-open="true"] .abody{max-height:640px; overflow-y:auto}
+  .abody::-webkit-scrollbar{display:none}
+  .abody-in{padding:2px 14px 15px}
+
+  .asub{font-size:12px; color:var(--sub); margin:0 0 8px; line-height:1.4}
+  .gv-dish{font-size:16px; font-weight:800; color:var(--plum); margin:2px 0 11px; display:flex; gap:7px; align-items:center; letter-spacing:-.01em}
+  .gv-q{font-size:12px; color:var(--sub); font-weight:600; margin-bottom:9px}
+  .confirm{display:flex; gap:9px}
+  .cbtn{flex:1; border-radius:12px; padding:11px; font:inherit; font-size:13.5px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; transition:all .16s}
+  .cbtn.yes{background:var(--violet); color:#fff; border:0}
+  .cbtn.yes:hover{background:var(--violet-2)}
+  .cbtn.no{background:#fff; color:var(--ink); border:1px solid var(--line)}
+  .cbtn.no:hover{border-color:var(--violet-2); color:var(--violet)}
+  .cbtn:focus-visible{outline:2px solid var(--magenta); outline-offset:2px}
+  .guesses{display:flex; flex-direction:column; gap:8px}
+  .guess{display:flex; align-items:center; gap:11px; width:100%; text-align:left; cursor:pointer; background:var(--appbg); border:1px solid var(--line); border-radius:13px; padding:11px 12px; font:inherit; color:var(--ink); transition:border-color .18s, background .18s, transform .1s}
+  .guess:hover{border-color:var(--violet-2); background:var(--lilac)}
+  .guess:active{transform:scale(.99)}
+  .guess:focus-visible{outline:2px solid var(--violet); outline-offset:2px}
+  .guess .ge{font-size:20px; flex:none}
+  .guess .gt{font-size:13.5px; font-weight:700; line-height:1.15}
+  .guess .gtag{font-size:10.5px; color:var(--sub); font-weight:600}
+  .guess .garr{margin-left:auto; color:var(--faint); font-size:16px}
+  .guess.else{background:transparent; border-style:dashed}
+  .guess.else .ge{color:var(--violet)}
+
+  .mission{animation:fadein .4s ease both}
+  @keyframes fadein{from{opacity:0; transform:translateY(6px)}to{opacity:1; transform:none}}
+  @media (prefers-reduced-motion:reduce){ .mission,.conv{animation:none} }
+  .backlink{background:none; border:0; color:var(--sub); font:inherit; font-size:12px; font-weight:700; cursor:pointer; padding:0; margin:2px 0 9px; display:inline-flex; gap:5px; align-items:center}
+  .backlink:hover{color:var(--violet)}
+  .mtitle{font-size:15px; font-weight:800; color:var(--plum); letter-spacing:-.01em}
+  .mhave{font-size:12px; color:var(--sub); line-height:1.4; margin:5px 0 2px}
+  .mhave b{color:var(--good); font-weight:700}
+  .catcount{font-size:11px; color:var(--violet); font-weight:800; background:var(--lilac); border-radius:20px; padding:3px 9px; display:inline-block; margin:8px 0 4px}
+  .mlead{font-size:11px; font-weight:800; color:var(--violet); text-transform:uppercase; letter-spacing:.06em; margin:10px 0 8px}
+  .items{display:flex; flex-direction:column; gap:7px}
+  .mi{display:flex; align-items:center; gap:11px; background:var(--appbg); border:1px solid var(--line); border-radius:12px; padding:9px 11px; transition:background .2s, border-color .2s}
+  .mi .mie{width:34px; height:34px; border-radius:9px; background:var(--lilac); display:grid; place-items:center; font-size:17px; flex:none}
+  .mi .mn{font-size:12.5px; font-weight:700; line-height:1.15}
+  .mi .mtagrow{display:flex; align-items:center; gap:6px; margin-top:2px; flex-wrap:wrap}
+  .mi .mcat{font-size:10px; color:var(--sub); font-weight:600}
+  .mi .newtag{font-size:9px; font-weight:800; color:var(--magenta); background:var(--lilac); border:1px solid #f2d6e6; border-radius:20px; padding:1px 6px}
+  .mi .mpr{font-size:12px; font-weight:800; color:var(--plum); margin-left:auto; margin-right:2px}
+  .mi .add{width:28px; height:28px; border-radius:50%; border:1.5px solid var(--violet); background:#fff; color:var(--violet); font-size:16px; font-weight:700; cursor:pointer; flex:none; display:grid; place-items:center; transition:all .16s}
+  .mi .add:hover{background:var(--lilac)}
+  .mi .add:focus-visible{outline:2px solid var(--violet); outline-offset:2px}
+  .mi.added{background:var(--good-soft); border-color:#bfe8d2}
+  .mi.added .add{background:var(--good); border-color:var(--good); color:#fff}
+
+  .mfoot{margin-top:12px; display:flex; align-items:center; gap:11px}
+  .addall{flex:1; border:0; border-radius:13px; padding:12px; background:var(--violet); color:#fff; font:inherit; font-size:13.5px; font-weight:800; cursor:pointer; transition:background .18s}
+  .addall:hover{background:var(--violet-2)}
+  .addall:focus-visible{outline:2px solid var(--magenta); outline-offset:2px}
+  .mcount{font-size:11.5px; color:var(--sub); font-weight:600; white-space:nowrap}
+
+  .conv{animation:fadein .4s ease both}
+  .cq2{font-size:15px; font-weight:800; color:var(--plum); letter-spacing:-.01em}
+  .cq2 span{color:var(--sub); font-weight:600; font-size:11.5px; display:block; margin-top:4px}
+  .cinput{display:flex; gap:8px; margin:12px 0 11px}
+  .cinput input{flex:1; border:1px solid var(--line); background:var(--appbg); border-radius:12px; padding:12px 14px; font:inherit; font-size:13px; color:var(--ink)}
+  .cinput input:focus{outline:none; border-color:var(--violet); background:#fff}
+  .cinput button{border:0; border-radius:12px; width:46px; background:var(--violet); color:#fff; font-size:17px; cursor:pointer}
+  .cinput button:focus-visible{outline:2px solid var(--magenta); outline-offset:2px}
+  .exhint{font-size:11px; color:var(--faint); line-height:1.4; margin:-4px 0 13px}
+  .exlabel{font-size:10.5px; color:var(--faint); font-weight:700; text-transform:uppercase; letter-spacing:.06em; margin-bottom:7px}
+  .chips{display:flex; flex-wrap:wrap; gap:7px}
+  .chip{border:1px solid var(--line); background:#fff; color:var(--ink); border-radius:20px; padding:7px 12px; font:inherit; font-size:12px; font-weight:600; cursor:pointer; transition:all .16s}
+  .chip:hover{border-color:var(--violet-2); background:var(--lilac); color:var(--violet)}
+  .chip:focus-visible{outline:2px solid var(--violet); outline-offset:2px}
+  .think{display:flex; align-items:center; gap:11px; padding:8px 2px}
+  .think .tt{font-size:12.5px; color:var(--sub); font-weight:600}
+  .dots-i{display:inline-flex; gap:4px}
+  .dots-i i{width:6px; height:6px; border-radius:50%; background:var(--violet-2); display:block; animation:bounce 1.1s infinite}
+  .dots-i i:nth-child(2){animation-delay:.15s} .dots-i i:nth-child(3){animation-delay:.3s}
+  @keyframes bounce{0%,60%,100%{opacity:.3; transform:translateY(0)}30%{opacity:1; transform:translateY(-3px)}}
+  @media (prefers-reduced-motion:reduce){ .dots-i i{animation:none; opacity:.7} }
+
+  /* bill */
+  .bill .brow{display:flex; justify-content:space-between; font-size:12.5px; padding:6px 0; color:var(--sub)}
+  .bill .brow b{color:var(--ink)}
+  .bill .brow.tot{border-top:1px dashed var(--line); margin-top:4px; padding-top:9px; font-size:14px; color:var(--plum); font-weight:800}
+  .bill .brow .free{color:var(--good); font-weight:800}
+  .billhead{font-size:13px; font-weight:800; color:var(--plum); padding:10px 0 2px}
+
+  .paybar{position:sticky; bottom:0; background:var(--app); border-top:1px solid var(--line); padding:12px 16px calc(12px + env(safe-area-inset-bottom)); display:flex; align-items:center; gap:12px; z-index:20; margin-top:auto}
+  .paybar .amt{font-size:16px; font-weight:800; color:var(--plum)} .paybar .amt small{display:block; font-size:10.5px; color:var(--sub); font-weight:600}
+  .paybar .pay{flex:1; background:var(--violet); color:#fff; border:0; border-radius:14px; padding:14px; font:inherit; font-size:14.5px; font-weight:800; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px}
+  .paybar .pay:hover{background:var(--violet-2)}
+
+  .toast{position:absolute; left:50%; bottom:88px; transform:translateX(-50%) translateY(20px); background:var(--plum); color:#fff; font-size:12.5px; font-weight:700; padding:10px 16px; border-radius:22px; opacity:0; transition:all .3s; z-index:40; box-shadow:0 10px 30px rgba(20,10,40,.4); white-space:nowrap}
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
+
+  .reset{background:none; border:1px solid var(--line); color:var(--sub); border-radius:20px; padding:7px 15px; font:inherit; font-size:12px; font-weight:700; cursor:pointer}
+  .reset:hover{border-color:var(--violet); color:var(--violet)}
+  .foot-note{max-width:412px; font-size:11px; color:var(--faint); text-align:center; line-height:1.55}
+</style>
+
+<div class="intro">
+  <span class="kicker"><span class="sp" style="width:15px;height:15px;border-radius:5px"></span> Zepto · Smart Missions</span>
+  <h1>Shopping that completes your thought</h1>
+  <p>This is your normal cart, right before checkout. Quietly, the app has worked out what you are trying to do and offers to finish it. Tap the Smart Missions bar, or open Something else and tell it a plan.</p>
+</div>
+
+<div class="phone">
+  <div class="notch"></div>
+  <div class="toast" id="toast"></div>
+  <div class="screen" id="screen">
+    <div class="appbar">
+      <div class="back">‹</div>
+      <div class="tt">Your cart<small>Delivery to Home · Koramangala</small></div>
+    </div>
+
+    <div class="content">
+      <div class="deliv"><span class="di">🛵</span><div><div class="d1">Delivery in 9 minutes</div><div class="d2">Shipment of 5 items</div></div></div>
+
+      <div class="card" id="cartcard">
+        <div class="citem"><div class="ce">🍫</div><div class="cmid"><div class="cn">Potato Chips</div><div class="cq">Snacks · 90 g</div></div><div class="cright"><div class="stepper">− 1 +</div><div class="cp">₹40</div></div></div>
+        <div class="citem"><div class="ce">🥤</div><div class="cmid"><div class="cn">Soft Drinks (2L)</div><div class="cq">Beverages · pack</div></div><div class="cright"><div class="stepper">− 1 +</div><div class="cp">₹99</div></div></div>
+        <div class="citem"><div class="ce">🧴</div><div class="cmid"><div class="cn">Sunscreen SPF 50</div><div class="cq">Personal care · 50 ml</div></div><div class="cright"><div class="stepper">− 1 +</div><div class="cp">₹199</div></div></div>
+        <div class="citem"><div class="ce">🍪</div><div class="cmid"><div class="cn">Cream Biscuits</div><div class="cq">Snacks · 120 g</div></div><div class="cright"><div class="stepper">− 1 +</div><div class="cp">₹32</div></div></div>
+        <div class="citem"><div class="ce">💧</div><div class="cmid"><div class="cn">Mineral Water</div><div class="cq">Beverages · 1 L ×4</div></div><div class="cright"><div class="stepper">− 1 +</div><div class="cp">₹40</div></div></div>
+      </div>
+
+      <div class="assist" id="assist" data-open="false">
+        <div class="assist-in">
+          <button class="ahead" id="ahead" aria-expanded="false">
+            <span class="sp breathe"></span>
+            <span class="ah-txt"><span class="ah1">✨ Before you check out…</span><span class="ah2">One quick thing we spotted. Tap to see</span></span>
+            <span class="chev">⌄</span>
+          </button>
+          <div class="abody"><div class="abody-in" id="abody"></div></div>
+        </div>
+      </div>
+
+      <div class="card bill">
+        <div class="billhead">Bill details</div>
+        <div class="brow"><span>Item total</span><b id="billitems">₹410</b></div>
+        <div class="brow"><span>Delivery charge</span><span class="free">FREE</span></div>
+        <div class="brow"><span>Handling charge</span><b>₹9</b></div>
+        <div class="brow tot"><span>To pay</span><b id="billtot">₹419</b></div>
+      </div>
+    </div>
+
+    <div class="paybar">
+      <div class="amt" id="payamt">₹419<small id="paycount">5 items</small></div>
+      <button class="pay">Proceed to pay ›</button>
+    </div>
+  </div>
+</div>
+
+<button class="reset" id="reset">↺ Start over</button>
+<p class="foot-note">Concept prototype for a product case study. Not affiliated with Zepto. Mission logic is illustrative and runs fully in your browser.</p>
+
+<script>
+  const BASE_ITEMS = 410, HANDLING = 9;
+  const MISSIONS = {
+    pbm:{emoji:"🍛", title:"Paneer Butter Masala", have:"You already have paneer, tomatoes, onions and garam masala.", lead:"Finish the dish with", items:[
+      {e:"🧈",n:"Amul Butter",cat:"Dairy",p:56},{e:"🌿",n:"Kasuri Methi",cat:"Spices",p:45},
+      {e:"🥜",n:"Cashews",cat:"Dry fruits",p:180,isNew:true},{e:"🥛",n:"Fresh Cream",cat:"Dairy",p:66},
+      {e:"🫓",n:"Butter Naan",cat:"Frozen breads",p:99,isNew:true},{e:"🍚",n:"Basmati Rice",cat:"Staples",p:150},
+      {e:"🍮",n:"Gulab Jamun",cat:"Desserts",p:110,isNew:true},{e:"📄",n:"Aluminium Foil",cat:"Home essentials",p:79,isNew:true} ]},
+    palak:{emoji:"🥬", title:"Palak Paneer", have:"You already have paneer and onions.", lead:"Finish the dish with", items:[
+      {e:"🥬",n:"Fresh Spinach",cat:"Fresh",p:29},{e:"🧈",n:"Amul Butter",cat:"Dairy",p:56},
+      {e:"🥛",n:"Fresh Cream",cat:"Dairy",p:66},{e:"🌶️",n:"Green Chillies",cat:"Fresh",p:15},
+      {e:"🥜",n:"Cashews",cat:"Dry fruits",p:180,isNew:true},{e:"🍚",n:"Jeera Rice mix",cat:"Staples",p:120,isNew:true} ]},
+    dinner:{emoji:"🎉", title:"Hosting Dinner", have:"Your cart covers the main course.", lead:"The evening still needs", items:[
+      {e:"🍽️",n:"Serving Plates (set of 6)",cat:"Kitchenware",p:349,isNew:true},{e:"🥤",n:"Assorted Soft Drinks",cat:"Beverages",p:120,isNew:true},
+      {e:"🍨",n:"Tub of Ice Cream",cat:"Frozen desserts",p:260,isNew:true},{e:"🧀",n:"Cheese & Crackers",cat:"Gourmet",p:220,isNew:true},
+      {e:"🧻",n:"Paper Napkins",cat:"Home essentials",p:60,isNew:true},{e:"🕯️",n:"Scented Candle",cat:"Home decor",p:199,isNew:true},
+      {e:"🍫",n:"Dessert Chocolates",cat:"Confectionery",p:150,isNew:true} ]},
+    goa:{emoji:"🏖️", title:"Beach Trip to Goa", have:"Packing for a couple of days by the sea.", lead:"Easy to forget, good to have", items:[
+      {e:"🧴",n:"SPF 50 Sunscreen",cat:"Personal care",p:399,isNew:true},{e:"🕶️",n:"Sunglasses",cat:"Fashion",p:499,isNew:true},
+      {e:"⚡",n:"Electrolyte Sachets",cat:"Health",p:120,isNew:true},{e:"🧻",n:"Wet Wipes",cat:"Personal care",p:99,isNew:true},
+      {e:"🔋",n:"10000mAh Power Bank",cat:"Electronics",p:1299,isNew:true},{e:"🦟",n:"Mosquito Repellent",cat:"Home",p:85,isNew:true},
+      {e:"🥤",n:"Steel Sipper Bottle",cat:"Kitchenware",p:299,isNew:true},{e:"🍿",n:"Travel Snacks Pack",cat:"Snacks",p:145,isNew:true} ]},
+    weekendtrip:{emoji:"🏖️", title:"Weekend Road Trip", have:"You've got the snacks, drinks and sunscreen. The rest of the trip is easy to forget.", lead:"Good to have before you leave", items:[
+      {e:"💧",n:"ORS Sachets",cat:"Health",p:99,isNew:true},{e:"🧻",n:"Wet Wipes",cat:"Personal care",p:99,isNew:true},
+      {e:"🦟",n:"Mosquito Spray",cat:"Health",p:85,isNew:true},{e:"🔋",n:"10000mAh Power Bank",cat:"Electronics",p:1299,isNew:true},
+      {e:"🛋️",n:"Neck Pillow",cat:"Travel",p:499,isNew:true},{e:"🔌",n:"Charging Cable",cat:"Electronics",p:199,isNew:true},
+      {e:"🧴",n:"Hand Sanitizer",cat:"Personal care",p:75,isNew:true} ]},
+    apartment:{emoji:"🏠", title:"New Apartment Setup", have:"First day in a new place.", lead:"The essentials that make it livable", items:[
+      {e:"🧴",n:"Bathroom Cleaner",cat:"Cleaning",p:99,isNew:true},{e:"🗑️",n:"Dustbin",cat:"Home essentials",p:249,isNew:true},
+      {e:"♻️",n:"Garbage Bags",cat:"Cleaning",p:79,isNew:true},{e:"🧹",n:"Floor Cleaner",cat:"Cleaning",p:110,isNew:true},
+      {e:"💡",n:"LED Bulbs (pack)",cat:"Electricals",p:220,isNew:true},{e:"🔌",n:"Extension Board",cat:"Electronics",p:349,isNew:true},
+      {e:"🛏️",n:"Bedsheet",cat:"Home linen",p:599,isNew:true},{e:"🌸",n:"Air Freshener",cat:"Home",p:150,isNew:true} ]},
+    birthday:{emoji:"🎂", title:"Birthday at Home", have:"A small celebration to put together.", lead:"Bring the party in", items:[
+      {e:"🎂",n:"Cake",cat:"Bakery",p:499,isNew:true},{e:"🎈",n:"Balloons",cat:"Party",p:99,isNew:true},
+      {e:"🕯️",n:"Birthday Candles",cat:"Party",p:49,isNew:true},{e:"🍽️",n:"Paper Plates",cat:"Party",p:79,isNew:true},
+      {e:"🎁",n:"Gift Wrap",cat:"Stationery",p:60,isNew:true},{e:"🍫",n:"Chocolate Hamper",cat:"Confectionery",p:299,isNew:true},
+      {e:"🥤",n:"Soft Drinks",cat:"Beverages",p:120,isNew:true},{e:"🧸",n:"Return Gifts",cat:"Toys",p:250,isNew:true} ]},
+    puppy:{emoji:"🐶", title:"New Puppy at Home", have:"Welcoming a new member of the family.", lead:"Everything the pup needs on day one", items:[
+      {e:"🦴",n:"Puppy Food",cat:"Pet care",p:549,isNew:true},{e:"🧸",n:"Chew Toy",cat:"Pet care",p:199,isNew:true},
+      {e:"💩",n:"Poop Bags",cat:"Pet care",p:149,isNew:true},{e:"🥣",n:"Feeding Bowl",cat:"Pet care",p:249,isNew:true},
+      {e:"🧴",n:"Pet Shampoo",cat:"Pet care",p:279,isNew:true},{e:"🪢",n:"Leash & Collar",cat:"Pet accessories",p:399,isNew:true},
+      {e:"🧻",n:"Pee Pads",cat:"Pet care",p:320,isNew:true} ]},
+    matar:{emoji:"🍲", title:"Matar Paneer", have:"You already have paneer, tomatoes and onions.", lead:"Finish the dish with", items:[
+      {e:"🟢",n:"Green Peas",cat:"Frozen",p:60},{e:"🧈",n:"Amul Butter",cat:"Dairy",p:56},
+      {e:"🌿",n:"Kasuri Methi",cat:"Spices",p:45},{e:"🥛",n:"Fresh Cream",cat:"Dairy",p:66},
+      {e:"🫓",n:"Tandoori Roti",cat:"Frozen breads",p:89,isNew:true} ]},
+    mountains:{emoji:"⛰️", title:"Mountains & Camping", have:"Heading up to the cold and the quiet.", lead:"Pack these before you leave", items:[
+      {e:"🍜",n:"Instant Noodles & Soup",cat:"Ready to eat",p:120,isNew:true},{e:"🔦",n:"Headlamp Torch",cat:"Electronics",p:349,isNew:true},
+      {e:"🔋",n:"Power Bank",cat:"Electronics",p:1299,isNew:true},{e:"🩹",n:"First Aid Kit",cat:"Health",p:299,isNew:true},
+      {e:"🧴",n:"Lip Balm & Sunscreen",cat:"Personal care",p:250,isNew:true},{e:"🍫",n:"Energy Bars",cat:"Snacks",p:180,isNew:true},
+      {e:"🧦",n:"Thermal Socks",cat:"Fashion",p:299,isNew:true} ]},
+    citybreak:{emoji:"🏙️", title:"Weekend City Break", have:"A short trip, a light bag.", lead:"The easy to forget essentials", items:[
+      {e:"🧳",n:"Travel Toiletries Kit",cat:"Personal care",p:299,isNew:true},{e:"🔌",n:"Charging Cable",cat:"Electronics",p:199,isNew:true},
+      {e:"☂️",n:"Compact Umbrella",cat:"Accessories",p:349,isNew:true},{e:"😷",n:"Sanitizer & Masks",cat:"Health",p:120,isNew:true},
+      {e:"🍫",n:"Travel Snacks",cat:"Snacks",p:145,isNew:true},{e:"🧦",n:"Spare Socks",cat:"Fashion",p:149,isNew:true} ]},
+    gamenight:{emoji:"🎮", title:"Game Night", have:"Friends coming over to play.", lead:"Snacks and setup", items:[
+      {e:"🍿",n:"Popcorn & Nachos",cat:"Snacks",p:160,isNew:true},{e:"🥤",n:"Cola & Soft Drinks",cat:"Beverages",p:120,isNew:true},
+      {e:"🧀",n:"Dips & Salsa",cat:"Gourmet",p:220,isNew:true},{e:"🧊",n:"Ice Cubes",cat:"Frozen",p:60,isNew:true},
+      {e:"🥤",n:"Disposable Cups",cat:"Home essentials",p:79,isNew:true},{e:"🍫",n:"Chocolate Box",cat:"Confectionery",p:199,isNew:true} ]},
+    anniversary:{emoji:"💐", title:"Anniversary at Home", have:"Making tonight feel special.", lead:"Set the mood with", items:[
+      {e:"💐",n:"Fresh Flower Bouquet",cat:"Flowers",p:499,isNew:true},{e:"🎂",n:"Dessert Cake",cat:"Bakery",p:549,isNew:true},
+      {e:"🍫",n:"Premium Chocolates",cat:"Confectionery",p:399,isNew:true},{e:"🕯️",n:"Scented Candles",cat:"Home decor",p:299,isNew:true},
+      {e:"🥂",n:"Sparkling Juice",cat:"Beverages",p:250,isNew:true},{e:"💌",n:"Greeting Card",cat:"Stationery",p:99,isNew:true} ]},
+    kitten:{emoji:"🐱", title:"New Kitten at Home", have:"Welcoming a new little one.", lead:"Everything the kitten needs", items:[
+      {e:"🐟",n:"Kitten Food",cat:"Pet care",p:449,isNew:true},{e:"🪣",n:"Cat Litter",cat:"Pet care",p:399,isNew:true},
+      {e:"🧺",n:"Litter Tray",cat:"Pet care",p:299,isNew:true},{e:"🧶",n:"Cat Toy",cat:"Pet care",p:149,isNew:true},
+      {e:"🥣",n:"Feeding Bowl",cat:"Pet care",p:199,isNew:true},{e:"🐾",n:"Scratching Post",cat:"Pet accessories",p:599,isNew:true} ]},
+  };
+
+  const GENRES = {
+    cook:{q:"What are you making?", opts:[{l:"Paneer Butter Masala",m:"pbm"},{l:"Palak Paneer",m:"palak"},{l:"Matar Paneer",m:"matar"}]},
+    travel:{q:"Where are you headed?", opts:[{l:"Weekend trip",m:"weekendtrip"},{l:"Beach trip",m:"goa"},{l:"Mountains & camping",m:"mountains"},{l:"Weekend city break",m:"citybreak"}]},
+    host:{q:"What are you hosting?", opts:[{l:"Dinner party",m:"dinner"},{l:"Game night",m:"gamenight"},{l:"A birthday",m:"birthday"}]},
+    move:{m:"apartment"},
+    pet:{q:"Who is joining the family?", opts:[{l:"A puppy",m:"puppy"},{l:"A kitten",m:"kitten"}]},
+    celebrate:{q:"What are you celebrating?", opts:[{l:"A birthday",m:"birthday"},{l:"An anniversary",m:"anniversary"}]},
+  };
+
+  const assist=document.getElementById('assist'), ahead=document.getElementById('ahead'), abody=document.getElementById('abody');
+  let cartTotal=BASE_ITEMS, cartCount=5;
+  function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;')}
+  function money(n){return '₹'+n.toLocaleString('en-IN')}
+  function updateBill(){
+    document.getElementById('billitems').textContent=money(cartTotal);
+    document.getElementById('billtot').textContent=money(cartTotal+HANDLING);
+    document.getElementById('payamt').firstChild.textContent=money(cartTotal+HANDLING);
+    document.getElementById('paycount').textContent=cartCount+' items';
+  }
+  let toastT;
+  function toast(msg){const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),1700);}
+
+  function open(v){assist.dataset.open=v; ahead.setAttribute('aria-expanded',v);}
+
+  function renderGuess(){
+    abody.innerHTML=`
+      <div class="mission">
+        <p class="asub">From what is in your cart, it looks like you are</p>
+        <div class="gv-dish">🏖️ Packing for a weekend road trip</div>
+        <p class="gv-q">Did we get that right?</p>
+        <div class="confirm">
+          <button class="cbtn yes">👍 Yes</button>
+          <button class="cbtn no">👎 Not quite</button>
+        </div>
+      </div>`;
+    abody.querySelector('.yes').onclick=()=>renderMission('weekendtrip');
+    abody.querySelector('.no').onclick=renderConv;
+  }
+
+  function renderMission(key){
+    const m=MISSIONS[key]; if(!m){renderConv();return;}
+    const cats=[...new Set(m.items.filter(i=>i.isNew).map(i=>i.cat))];
+    const itemsHtml=m.items.map((it,i)=>`
+      <div class="mi" data-i="${i}" data-p="${it.p}">
+        <div class="mie">${it.e}</div>
+        <div><div class="mn">${esc(it.n)}</div><div class="mtagrow"><span class="mcat">${esc(it.cat)}</span>${it.isNew?'<span class="newtag">New for you</span>':''}</div></div>
+        <span class="mpr">${money(it.p)}</span>
+        <button class="add" aria-label="Add ${esc(it.n)}">+</button>
+      </div>`).join('');
+    abody.innerHTML=`
+      <div class="mission">
+        <button class="backlink" id="back">‹ Not quite this</button>
+        <div class="mtitle">${m.emoji} ${esc(m.title)}</div>
+        <div class="mhave">${esc(m.have)}</div>
+        <span class="catcount">Spans ${cats.length} categories you rarely open</span>
+        <div class="mlead">${esc(m.lead)}</div>
+        <div class="items">${itemsHtml}</div>
+        <div class="mfoot"><button class="addall" id="addall">Add all to cart</button><span class="mcount" id="mcount">0 of ${m.items.length} added</span></div>
+      </div>`;
+    const rows=[...abody.querySelectorAll('.mi')];
+    function refresh(){
+      const added=rows.filter(r=>r.classList.contains('added'));
+      const newCats=[...new Set(added.filter(r=>r.querySelector('.newtag')).map(r=>r.querySelector('.mcat').textContent))].length;
+      document.getElementById('mcount').textContent = added.length===0?`0 of ${m.items.length} added`:`${added.length} added`+(newCats?` · ${newCats} new categories`:'');
+    }
+    function setRow(r,on){
+      const was=r.classList.contains('added'); if(was===on) return;
+      r.classList.toggle('added',on); r.querySelector('.add').textContent=on?'✓':'+';
+      const p=+r.dataset.p; cartTotal+=on?p:-p; cartCount+=on?1:-1; updateBill();
+    }
+    rows.forEach(r=>r.querySelector('.add').onclick=()=>setRow(r,!r.classList.contains('added')));
+    document.getElementById('addall').onclick=e=>{rows.forEach(r=>setRow(r,true)); refresh(); e.target.textContent='Added to cart ✓'; e.target.style.background='var(--good)'; toast(m.items.length+' items added across '+cats.length+' new categories');};
+    document.getElementById('back').onclick=renderGuess;
+    refresh();
+  }
+
+  const MATCH=[
+    {k:['matar','mutter','peas'],m:'matar'},
+    {k:['palak','spinach'],m:'palak'},
+    {k:['paneer butter','butter masala','pbm','cook','recipe','making'],m:'pbm'},
+    {k:['weekend trip','road trip','weekend','getaway','outing'],m:'weekendtrip'},
+    {k:['goa','beach','sea'],m:'goa'},
+    {k:['mountain','manali','trek','camp','hill','ladakh','shimla','snow'],m:'mountains'},
+    {k:['city','trip','travel','holiday','vacation','flight'],m:'citybreak'},
+    {k:['game night','poker','cards','gaming'],m:'gamenight'},
+    {k:['dinner','guest','host'],m:'dinner'},
+    {k:['anniversary'],m:'anniversary'},
+    {k:['birthday','celebrat','party'],m:'birthday'},
+    {k:['kitten','cat'],m:'kitten'},
+    {k:['puppy','dog','pet'],m:'puppy'},
+    {k:['apartment','flat','moving','shift','house','new place','room'],m:'apartment'},
+  ];
+  function resolve(t){t=t.toLowerCase(); for(const r of MATCH){if(r.k.some(w=>t.includes(w)))return r.m;} return null;}
+
+  const GENRE_CHIPS=`
+    <button class="chip" data-g="travel">✈️ Travelling</button>
+    <button class="chip" data-g="host">🎉 Hosting guests</button>
+    <button class="chip" data-g="move">🏠 Moving home</button>
+    <button class="chip" data-g="celebrate">🎂 Celebrating</button>
+    <button class="chip" data-g="pet">🐶 New pet</button>
+    <button class="chip" data-g="cook">🍳 Cooking a recipe</button>`;
+
+  function wireGenreChips(){ abody.querySelectorAll('.chip[data-g]').forEach(c=>c.onclick=()=>pickGenre(c.dataset.g)); }
+  function pickGenre(g){ const gen=GENRES[g]; if(!gen) return; if(gen.m){thinking(gen.m); return;} renderFollow(g); }
+  function renderFollow(g){
+    const gen=GENRES[g];
+    abody.innerHTML=`
+      <div class="conv">
+        <button class="backlink" id="backf">‹ Back</button>
+        <div class="cq2">${gen.q}<span>Pick one, or type it above.</span></div>
+        <div class="chips" style="margin-top:11px">${gen.opts.map(o=>`<button class="chip" data-m="${o.m}">${o.l}</button>`).join('')}</div>
+      </div>`;
+    document.getElementById('backf').onclick=renderConv;
+    abody.querySelectorAll('.chip').forEach(c=>c.onclick=()=>thinking(c.dataset.m));
+  }
+
+  function renderConv(){
+    abody.innerHTML=`
+      <div class="conv">
+        <button class="backlink" id="back2">‹ Back</button>
+        <div class="cq2">What's today's plan?<span>Tell me in your own words. It stays private to this order.</span></div>
+        <div class="cinput"><input id="cin" placeholder="Describe your plan…" autocomplete="off"/><button id="csend" aria-label="Send">→</button></div>
+        <div class="exhint">For example, a weekend trip, going camping, or hosting friends</div>
+        <div class="exlabel">Quick suggestions ⭐</div>
+        <div class="chips">${GENRE_CHIPS}</div>
+      </div>`;
+    document.getElementById('back2').onclick=renderGuess;
+    wireGenreChips();
+    const send=()=>{const v=document.getElementById('cin').value.trim(); if(!v)return; const m=resolve(v); m?thinking(m):notFound();};
+    document.getElementById('csend').onclick=send;
+    document.getElementById('cin').addEventListener('keydown',e=>{if(e.key==='Enter')send();});
+    document.getElementById('cin').focus();
+  }
+  function thinking(m){abody.innerHTML=`<div class="think"><span class="sp breathe"></span><span class="tt">Putting your list together</span><span class="dots-i"><i></i><i></i><i></i></span></div>`; setTimeout(()=>renderMission(m),800);}
+  function notFound(){abody.innerHTML=`<div class="conv"><button class="backlink" id="back3">‹ Back</button><div class="cq2">Noted, I am still learning that one.<span>Pick the closest and I will take it from there.</span></div><div class="chips" style="margin-top:11px">${GENRE_CHIPS}</div></div>`; document.getElementById('back3').onclick=renderConv; wireGenreChips();}
+
+  ahead.onclick=()=>{ const now=assist.dataset.open==='true'; open(now?'false':'true'); if(!now && !abody.innerHTML.trim()) renderGuess(); };
+  document.getElementById('reset').onclick=()=>{cartTotal=BASE_ITEMS; cartCount=5; updateBill(); open('false'); renderGuess(); document.getElementById('screen').scrollTop=0; location.hash='';};
+  renderGuess(); updateBill();
+  const h=location.hash;
+  if(h==='#open'){ open('true'); }
+  else if(h.indexOf('#m=')===0 && MISSIONS[h.slice(3)]){ open('true'); renderMission(h.slice(3)); }
+  else if(h==='#conv'){ open('true'); renderConv(); }
+</script>
