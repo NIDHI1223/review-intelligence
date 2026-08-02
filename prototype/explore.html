@@ -188,18 +188,39 @@ Reply with ONLY this JSON, nothing else:
       ${evid?`<div style="margin-top:14px"><div class="evhead">The actual reviews cited (${cited.length})</div>${evid}</div>`:''}</div>`;
   }
 
+  // no-key mode: answer straight from the pre-computed insights — zero API, zero quota
+  function renderLocal(q,ev){
+    if(!ev.ins.length&&!ev.revs.length){ out.innerHTML=`<div class="card err">Nothing in the research matches that — try different words.</div>`; return; }
+    const cards=ev.ins.slice(0,5).map(i=>{
+      const quotes=i.quotes.filter(x=>x.q).map(x=>`
+        <div class="rev">
+          <div class="meta"><span class="tag">quote</span><span class="tag id">${esc(x.id)}</span></div>
+          <div class="txt">“${esc(x.q)}”</div>
+        </div>`).join('');
+      return `<div class="card"><div class="answer"><p><b>${esc(i.claim)}</b></p>
+        <p style="font-size:12px;color:var(--sub)">${i.n} reviews support this · ${esc((i.rqs||[]).join(', '))}</p></div>${quotes}</div>`;
+    }).join('');
+    const revs=ev.revs.slice(0,5).map(({id,r})=>`
+      <div class="rev">
+        <div class="meta"><span class="tag">${esc(r.app||'app')}</span>${r.s?`<span class="tag ${r.s==='positive'?'pos':r.s==='negative'?'neg':''}">${esc(r.s)}</span>`:''}<span class="tag id">${esc(id)}</span></div>
+        <div class="txt">${esc(r.text)}</div>
+      </div>`).join('');
+    out.innerHTML=`<div class="evhead" style="text-align:center">From the pre-computed research (no AI needed)</div>${cards}
+      ${revs?`<div class="card"><div class="evhead">Matching raw reviews</div>${revs}</div>`:''}`;
+  }
+
   let busy=false;
   async function ask(q){
     if(!q.trim()||busy) return;
-    if(!getKey()){ out.innerHTML=`<div class="card err">No API key configured — open this page from the published link, or append <b>?key=YOUR_GEMINI_KEY</b> to the URL.</div>`; return; }
+    const ev=retrieve(q);
+    if(!getKey()){ renderLocal(q,ev); return; }
     busy=true;
     out.innerHTML=`<div class="think"><span>Reading ${Object.keys(D.reviews).length.toLocaleString('en-IN')} reviews</span><span class="dots"><i></i><i></i><i></i></span></div>`;
     try{
-      const res=await ai(prompt(q,retrieve(q)));
+      const res=await ai(prompt(q,ev));
       renderAnswer(res);
     }catch(e){
-      out.innerHTML=`<div class="card err">${esc(e.message)} — <a class="plain" href="#" onclick="return false" id="retry">try again</a></div>`;
-      document.getElementById('retry').onclick=()=>{busy=false; ask(q); return false;};
+      renderLocal(q,ev); // AI down or rate-limited — the research still answers
     }
     busy=false;
   }
