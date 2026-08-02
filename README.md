@@ -9,6 +9,9 @@ every quote is verified verbatim against the raw corpus, counter-evidence is
 surfaced rather than hidden, and anything that couldn't be collected or
 verified is disclosed in a limitations report.
 
+> 📊 **Pitch deliverables (NL Zepto — Smart Missions):** the live deck and the
+> interactive MVP prototype are listed in **[LINKS.md](LINKS.md)**.
+
 ## Architecture
 
 ```
