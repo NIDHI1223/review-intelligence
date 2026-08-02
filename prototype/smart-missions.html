@@ -247,6 +247,7 @@
 <button class="reset" id="reset">↺ Start over</button>
 <p class="foot-note">Concept prototype for a product case study. Not affiliated with Zepto. Plans are generated live by AI (Google Gemini) from your cart and your own words.</p>
 
+<script src="keys.local.js"></script><!-- gitignored; present only in local dev -->
 <script>
   const HANDLING = 9;
   const PRODUCTS = [
@@ -305,7 +306,9 @@
   }
   const qkey = new URLSearchParams(location.search).get('key');
   if (qkey) localStorage.setItem('gemini_key', qkey);
-  const getKey = () => real(EMBED_KEY) || localStorage.getItem('gemini_key') || '';
+  const LK = window.LOCAL_KEYS || {};
+  const getKey = () => real(EMBED_KEY) || LK.gemini || localStorage.getItem('gemini_key') || '';
+  const groqKey = () => real(GROQ_KEY) || LK.groq || '';
 
   // Flash models "think" before answering by default — the main latency cost here.
   // 'minimal' is benchmarked-correct for gemini-3.5-flash; if a fallback model
@@ -353,9 +356,9 @@
   // whenever Gemini errors or is rate-limited — separate provider, separate quota.
   const GROQ_KEY = '__GROQ_KEY__';
   async function aiGroq(prompt){
-    if(!real(GROQ_KEY)) throw new Error('no groq key configured');
+    if(!groqKey()) throw new Error('no groq key configured');
     const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY},
+      method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+groqKey()},
       body: JSON.stringify({model:'llama-3.3-70b-versatile', temperature:0.7,
         response_format:{type:'json_object'}, messages:[{role:'user',content:prompt}]})
     });

@@ -75,6 +75,7 @@
   <p class="foot">Concept research tool for a product case study. Not affiliated with Zepto. The corpus is a July 2026 snapshot; the AI answers only from this data and cites review IDs you can read below each answer.</p>
 </div>
 
+<script src="keys.local.js"></script><!-- gitignored; present only in local dev -->
 <script src="research_data.js"></script>
 <script>
   const D=window.RESEARCH_DATA||{reviews:{},insights:[],cats:[]};
@@ -87,7 +88,9 @@
   const real=k=>k&&k.indexOf('__')!==0?k:'';
   const qk=new URLSearchParams(location.search).get('key');
   if(qk) localStorage.setItem('gemini_key',qk);
-  const getKey=()=>real(EMBED_KEY)||localStorage.getItem('gemini_key')||'';
+  const LK=window.LOCAL_KEYS||{};
+  const getKey=()=>real(EMBED_KEY)||LK.gemini||localStorage.getItem('gemini_key')||'';
+  const groqKey=()=>real(GROQ_KEY)||LK.groq||'';
   let THINK_MODE='minimal';
   const THINK_CFG={minimal:{thinkingConfig:{thinkingLevel:'minimal'}}, budget:{thinkingConfig:{thinkingBudget:0}}, none:{}};
 
@@ -114,9 +117,9 @@
     }
   }
   async function aiGroq(prompt){
-    if(!real(GROQ_KEY)) throw new Error('no groq key configured');
+    if(!groqKey()) throw new Error('no groq key configured');
     const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{
-      method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY},
+      method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+groqKey()},
       body:JSON.stringify({model:'llama-3.3-70b-versatile',temperature:0.4,response_format:{type:'json_object'},messages:[{role:'user',content:prompt}]})});
     if(!r.ok){const e=await r.json().catch(()=>null); throw new Error((e&&e.error&&e.error.message)||('Groq HTTP '+r.status));}
     const d=await r.json();
@@ -220,7 +223,11 @@ Reply with ONLY this JSON, nothing else:
       const res=await ai(prompt(q,ev));
       renderAnswer(res);
     }catch(e){
-      renderLocal(q,ev); // AI down or rate-limited — the research still answers
+      // surface the failure, then still show the research matches below it
+      const detail=esc(String(e.message||e)).slice(0,300);
+      renderLocal(q,ev);
+      out.insertAdjacentHTML('afterbegin',`<div class="card err" style="margin-bottom:12px">AI answer failed: ${detail}<br><a class="plain" href="#" id="retry">Try again</a></div>`);
+      document.getElementById('retry').onclick=()=>{busy=false; ask(q); return false;};
     }
     busy=false;
   }
