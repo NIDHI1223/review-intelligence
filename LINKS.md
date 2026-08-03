@@ -4,8 +4,9 @@ Intent-Based Shopping / **Smart Missions** product case study.
 
 | Deliverable | Live link | Source file |
 |---|---|---|
-| Pitch deck (10 slides) | https://claude.ai/code/artifact/68e430d8-a7f8-4271-a978-fe7426dd392a | [`deck/NL_Zepto.html`](deck/NL_Zepto.html) |
-| Interactive MVP — Smart Missions | https://claude.ai/code/artifact/44f5bffb-4d8d-4690-a95b-1a9a59bb89ab | [`prototype/smart-missions.html`](prototype/smart-missions.html) |
+| Pitch deck (10 slides) | https://nidhi1223.github.io/review-intelligence/deck/NL_Zepto.html | [`deck/NL_Zepto.html`](deck/NL_Zepto.html) |
+| Interactive MVP — Smart Missions | https://nidhi1223.github.io/review-intelligence/prototype/smart-missions.html | [`prototype/smart-missions.html`](prototype/smart-missions.html) |
+| Explore the Research — grounded Q&A | https://nidhi1223.github.io/review-intelligence/prototype/explore.html | [`prototype/explore.html`](prototype/explore.html) |
 
 Both are self-contained HTML — open the source files directly in a browser, or
 use the live links above. The MVP opens on a weekend-trip cart and builds a
