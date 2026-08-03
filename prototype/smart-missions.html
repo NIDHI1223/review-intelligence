@@ -463,7 +463,7 @@ Guess the single most likely plan behind this basket, plus 3 other plausible pla
     const rows=PRODUCTS.map((p,id)=>({p,id})).filter(({p})=>!f||p.n.toLowerCase().includes(f)||p.cat.toLowerCase().includes(f));
     box.innerHTML=rows.map(({p,id})=>`
       <div class="citem"><div class="ce">${p.e}</div>
-        <div class="cmid"><div class="cn">${p.n}</div><div class="cq">${p.cat}</div></div>
+        <div class="cmid"><div class="cn">${p.n}</div></div>
         <div class="cright">${stepperHtml(id,sel.get(id)||0)}<div class="cp">${money(p.p)}</div></div>
       </div>`).join('')||'<p style="padding:14px 4px;font-size:12.5px;color:var(--sub)">No products match your search.</p>';
     wireBumps(box,renderShop);
@@ -473,7 +473,7 @@ Guess the single most likely plan behind this basket, plus 3 other plausible pla
     const rows=[...sel.entries()];
     box.innerHTML=rows.map(([id,q])=>{const p=PRODUCTS[id]; return `
       <div class="citem"><div class="ce">${p.e}</div>
-        <div class="cmid"><div class="cn">${p.n}</div><div class="cq">${p.cat}</div></div>
+        <div class="cmid"><div class="cn">${p.n}</div></div>
         <div class="cright">${stepperHtml(id,q)}<div class="cp">${money(p.p*q)}</div></div>
       </div>`;}).join('')||'<p style="padding:14px 4px;font-size:12.5px;color:var(--sub)">Your cart is empty — add something from the shop.</p>';
     wireBumps(box,renderCart);
@@ -574,24 +574,21 @@ Guess the single most likely plan behind this basket, plus 3 other plausible pla
   function renderMission(m){
     nav++;
     setHead(m.emoji+' '+m.title,'Your plan, completed');
-    // group by category — the categories ARE the feature
-    const cats=[], byCat={};
-    m.items.forEach((it,i)=>{ const c=it.cat||'More'; if(!byCat[c]){byCat[c]=[]; cats.push(c);} byCat[c].push({it,i}); });
-    const row=({it,i})=>`
+    // categories stay internal (they matter to Zepto, not the shopper) — flat list in the UI
+    const row=(it,i)=>`
       <div class="mi" data-i="${i}" data-p="${it.p}">
         <div class="mie">${esc(it.e)}</div>
         <div><div class="mn">${esc(it.n)}</div>${it.isNew?'<div class="mtagrow"><span class="newtag">New for you</span></div>':''}</div>
         <span class="mpr">${money(it.p)}</span>
         <button class="add" aria-label="Add ${esc(it.n)}">+</button>
       </div>`;
-    const itemsHtml=cats.map(c=>`<div class="mlead">${esc(c)}</div><div class="items">${byCat[c].map(row).join('')}</div>`).join('');
     abody.innerHTML=`
       <div class="mission">
         <button class="backlink" id="back">‹ Not quite this</button>
         <div class="mtitle">${esc(m.emoji)} ${esc(m.title)}</div>
         <div class="mhave">${esc(m.have)}</div>
-        <span class="catcount">${cats.length} categories for this plan</span>
-        ${itemsHtml}
+        <div class="mlead">${esc(m.lead)}</div>
+        <div class="items">${m.items.map(row).join('')}</div>
         <div class="mfoot"><button class="addall" id="addall">Add all to cart</button><span class="mcount" id="mcount">0 of ${m.items.length} added</span></div>
       </div>`;
     const rows=[...abody.querySelectorAll('.mi')];
@@ -682,7 +679,7 @@ Guess the single most likely plan behind this basket, plus 3 other plausible pla
   document.getElementById('psearch').addEventListener('input',renderShop);
   // start on the cart with a ready-made basket so the AI feature shows itself;
   // ‹ Back takes the user to the shop to build their own
-  const DEMO_BASKET=[12,14,13,3]; // balloons, cake, disposable cups, soft drinks
+  const DEMO_BASKET=[1,0,2]; // popcorn, chips, cookies — grocery-only, like our target user's cart
   function seedCart(){ sel.clear(); DEMO_BASKET.forEach(i=>sel.set(i,1)); }
   document.getElementById('reset').onclick=()=>{nav++; missionTotal=0; missionCount=0; lastAlts=[]; spec=null; abody.innerHTML=''; open('false'); resetHead(); seedCart(); updateBill(); showView('cart'); location.hash='';};
   seedCart(); renderShop(); updateBill();
@@ -696,19 +693,17 @@ Guess the single most likely plan behind this basket, plus 3 other plausible pla
     document.getElementById('reset').style.display='none';
     document.querySelector('.foot-note').style.display='none';
     document.body.insertAdjacentHTML('beforeend','<style>body{background:none !important}.assist{animation:none;opacity:1;transform:none}.sp.breathe{animation:none}.dots-i i{animation:none;opacity:.7}.abody{transition:none}</style>');
-    const M={emoji:'🎂',title:'Birthday at Home',have:'Cake, balloons, cups and drinks are in — the party base is covered.',lead:'Make it a celebration',items:[
-      {e:'🕯️',n:'Birthday Candles',cat:'Home care',p:49,isNew:true},
-      {e:'🍽️',n:'Paper Plates',cat:'Home care',p:79,isNew:true},
-      {e:'🎁',n:'Gift Wrap',cat:'Home care',p:60,isNew:true},
-      {e:'🍫',n:'Chocolate Hamper',cat:'Grocery',p:299,isNew:false},
-      {e:'🍨',n:'Vanilla Ice Cream Tub',cat:'Grocery',p:260,isNew:false},
-      {e:'📸',n:'Party Streamers',cat:'Home care',p:99,isNew:true},
-      {e:'🧴',n:'Hand Sanitizer',cat:'Personal care',p:75,isNew:true}]};
+    const M={emoji:'🎬',title:'Movie Night',have:'Popcorn, chips and cookies are in — snacks sorted.',lead:'Before you hit play',items:[
+      {e:'🧻',n:'Tissue Box',cat:'Home care',p:75,isNew:true},
+      {e:'🥤',n:'Disposable Cups',cat:'Home care',p:79,isNew:true},
+      {e:'🔋',n:'AAA Batteries (remote)',cat:'Electronics',p:99,isNew:true},
+      {e:'🥤',n:'Cola 2L',cat:'Grocery',p:99,isNew:false},
+      {e:'🍨',n:'Vanilla Ice Cream Tub',cat:'Grocery',p:260,isNew:false}]};
     nav++; open('true');
     if(SHOT==='1'){ thinking('Reading your cart'); setHead('✨ Reading your cart…','Working out your plan'); }
     else if(SHOT==='2'){
-      setHead('🎂 Throwing a birthday party','Our guess from your cart — tap to see');
-      abody.innerHTML=`<div class="mission"><p class="asub">From what is in your cart, it looks like you are</p><div class="gv-dish">🎂 Throwing a birthday party</div><p class="gv-q">Did we get that right?</p><div class="confirm"><button class="cbtn yes">👍 Yes</button><button class="cbtn no">👎 Not quite</button></div></div>`;
+      setHead('🎬 Planning a movie night','Our guess from your cart — tap to see');
+      abody.innerHTML=`<div class="mission"><p class="asub">From what is in your cart, it looks like you are</p><div class="gv-dish">🎬 Planning a movie night</div><p class="gv-q">Did we get that right?</p><div class="confirm"><button class="cbtn yes">👍 Yes</button><button class="cbtn no">👎 Not quite</button></div></div>`;
     }
     else{
       renderMission(M);
