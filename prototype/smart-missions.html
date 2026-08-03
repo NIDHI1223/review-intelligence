@@ -306,6 +306,7 @@
   }
   const qkey = new URLSearchParams(location.search).get('key');
   if (qkey) localStorage.setItem('gemini_key', qkey);
+  const SHOT = new URLSearchParams(location.search).get('shot'); // deterministic states for deck screenshots
   const LK = window.LOCAL_KEYS || {};
   const getKey = () => real(EMBED_KEY) || LK.gemini || localStorage.getItem('gemini_key') || '';
   const groqKey = () => real(GROQ_KEY) || LK.groq || '';
@@ -371,6 +372,7 @@
   }
 
   async function ai(prompt){
+    if(SHOT) return new Promise(()=>{}); // screenshot mode: no network, states are hand-set below
     try{ return await aiGemini(prompt); }
     catch(e){
       try{ return await aiGroq(prompt); }
@@ -687,4 +689,32 @@ Guess the single most likely plan behind this basket, plus 3 other plausible pla
   const h=location.hash;
   if(h==='#conv'){ showView('cart'); open('true'); getKey()?renderConv():renderKeySetup(); }
   else showView('cart');
+
+  // ── screenshot mode: ?shot=1..5 renders each step of the flow, statically ──
+  if(SHOT){
+    document.querySelector('.intro').style.display='none';
+    document.getElementById('reset').style.display='none';
+    document.querySelector('.foot-note').style.display='none';
+    document.body.insertAdjacentHTML('beforeend','<style>.assist{animation:none;opacity:1;transform:none}.sp.breathe{animation:none}.dots-i i{animation:none;opacity:.7}.abody{transition:none}</style>');
+    const M={emoji:'🎂',title:'Birthday at Home',have:'Cake, balloons, cups and drinks are in — the party base is covered.',lead:'Make it a celebration',items:[
+      {e:'🕯️',n:'Birthday Candles',cat:'Home care',p:49,isNew:true},
+      {e:'🍽️',n:'Paper Plates',cat:'Home care',p:79,isNew:true},
+      {e:'🎁',n:'Gift Wrap',cat:'Home care',p:60,isNew:true},
+      {e:'🍫',n:'Chocolate Hamper',cat:'Grocery',p:299,isNew:false},
+      {e:'🍨',n:'Vanilla Ice Cream Tub',cat:'Grocery',p:260,isNew:false},
+      {e:'📸',n:'Party Streamers',cat:'Home care',p:99,isNew:true},
+      {e:'🧴',n:'Hand Sanitizer',cat:'Personal care',p:75,isNew:true}]};
+    nav++; open('true');
+    if(SHOT==='1'){ thinking('Reading your cart'); setHead('✨ Reading your cart…','Working out your plan'); }
+    else if(SHOT==='2'){
+      setHead('🎂 Throwing a birthday party','Our guess from your cart — tap to see');
+      abody.innerHTML=`<div class="mission"><p class="asub">From what is in your cart, it looks like you are</p><div class="gv-dish">🎂 Throwing a birthday party</div><p class="gv-q">Did we get that right?</p><div class="confirm"><button class="cbtn yes">👍 Yes</button><button class="cbtn no">👎 Not quite</button></div></div>`;
+    }
+    else{
+      renderMission(M);
+      if(SHOT==='4') [...abody.querySelectorAll('.mi .add')].slice(0,3).forEach(b=>b.click());
+      if(SHOT==='5'){ document.getElementById('addall').click(); document.querySelector('.abody').scrollTop=99999; }
+      document.getElementById('screen').scrollTop=document.getElementById('assist').offsetTop-84;
+    }
+  }
 </script>
