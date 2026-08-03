@@ -151,7 +151,7 @@
     const revTxt=ev.revs.map(x=>`- [${x.id}] (${x.r.app||'?'}, ${x.r.s||'?'}) "${x.r.text}"`).join('\n');
     return `You are the research assistant for "NL Zepto", a study of quick-commerce user reviews (Zepto and peers) scraped from Play Store, App Store and YouTube, then clustered into insights.
 
-Answer the question using ONLY the evidence below. Be specific and quantitative where the data allows (review counts are real). Cite review IDs inline in square brackets exactly as given, e.g. [gp_1a2b] — cite ONLY IDs that appear in the evidence. If the evidence is thin for the question, say so honestly.
+Answer the question using ONLY the evidence below. Be specific and quantitative where the data allows (review counts are real). Do NOT put review IDs or citation markers in the answer text — write clean prose. Separately list, in "cited", the IDs of every review you actually drew on (only IDs that appear in the evidence). If the evidence is thin for the question, say so honestly.
 
 QUESTION: "${q}"
 
@@ -165,7 +165,7 @@ RAW REVIEW SNIPPETS:
 ${revTxt||'(none matched)'}
 
 Reply with ONLY this JSON, nothing else:
-{"answer":"2-4 short paragraphs, markdown bold allowed, citations inline like [gp_1a2b]","cited":["every review id you cited, in order"]}`;
+{"answer":"2-4 short paragraphs, markdown bold allowed, no ids or citation markers","cited":["every review id you drew on, most relevant first"]}`;
   }
 
   /* ── render ── */
@@ -174,21 +174,21 @@ Reply with ONLY this JSON, nothing else:
   function renderAnswer(res){
     const cited=[...new Set((res.cited||[]).filter(id=>D.reviews[id]))];
     let html=esc(String(res.answer||''));
+    html=html.replace(/\s*\[[a-z]{2}_[\w-]+\]/g,''); // belt-and-braces: strip any ids the model still emits
     html=html.replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>');
-    html=html.replace(/\[([a-z]{2}_[\w-]+)\]/g,(m,id)=>D.reviews[id]?`<a class="cite" href="#r-${id}">${id.slice(0,10)}…</a>`:'');
     html='<p>'+html.split(/\n{2,}|\n/).filter(x=>x.trim()).join('</p><p>')+'</p>';
-    const evid=cited.map(id=>{const r=D.reviews[id]; return `
-      <div class="rev" id="r-${id}">
+    const evid=cited.map((id,n)=>{const r=D.reviews[id]; return `
+      <div class="rev">
         <div class="meta">
+          <span class="tag">${n+1}</span>
           <span class="tag">${esc(r.app||'app')}</span>
           <span class="tag">${esc(r.src||'source')}</span>
           ${r.s?`<span class="tag ${r.s==='positive'?'pos':r.s==='negative'?'neg':''}">${esc(r.s)}</span>`:''}
-          <span class="tag id">${esc(id)}</span>
         </div>
         <div class="txt">${esc(r.text)}</div>
       </div>`;}).join('');
     out.innerHTML=`<div class="card"><div class="answer">${html}</div>
-      ${evid?`<div style="margin-top:14px"><div class="evhead">The actual reviews cited (${cited.length})</div>${evid}</div>`:''}</div>`;
+      ${evid?`<div style="margin-top:14px"><div class="evhead">References — the real reviews behind this answer (${cited.length})</div>${evid}</div>`:''}</div>`;
   }
 
   // no-key mode: answer straight from the pre-computed insights — zero API, zero quota
@@ -197,7 +197,7 @@ Reply with ONLY this JSON, nothing else:
     const cards=ev.ins.slice(0,5).map(i=>{
       const quotes=i.quotes.filter(x=>x.q).map(x=>`
         <div class="rev">
-          <div class="meta"><span class="tag">quote</span><span class="tag id">${esc(x.id)}</span></div>
+          <div class="meta"><span class="tag">from a real review</span></div>
           <div class="txt">“${esc(x.q)}”</div>
         </div>`).join('');
       return `<div class="card"><div class="answer"><p><b>${esc(i.claim)}</b></p>
@@ -205,7 +205,7 @@ Reply with ONLY this JSON, nothing else:
     }).join('');
     const revs=ev.revs.slice(0,5).map(({id,r})=>`
       <div class="rev">
-        <div class="meta"><span class="tag">${esc(r.app||'app')}</span>${r.s?`<span class="tag ${r.s==='positive'?'pos':r.s==='negative'?'neg':''}">${esc(r.s)}</span>`:''}<span class="tag id">${esc(id)}</span></div>
+        <div class="meta"><span class="tag">${esc(r.app||'app')}</span>${r.s?`<span class="tag ${r.s==='positive'?'pos':r.s==='negative'?'neg':''}">${esc(r.s)}</span>`:''}</div>
         <div class="txt">${esc(r.text)}</div>
       </div>`).join('');
     out.innerHTML=`<div class="evhead" style="text-align:center">From the pre-computed research (no AI needed)</div>${cards}
