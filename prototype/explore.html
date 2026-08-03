@@ -80,7 +80,7 @@
 <script>
   const D=window.RESEARCH_DATA||{reviews:{},insights:[],cats:[]};
   document.getElementById('sub').textContent=
-    `Answers are grounded in ${Object.keys(D.reviews).length.toLocaleString('en-IN')} real reviews from Play Store, App Store and YouTube, distilled into ${D.insights.length} insights across ${new Set(D.cats.map(c=>c.rq)).size} research questions. Every claim cites the actual review it came from.`;
+    `Answers are grounded in ${Object.keys(D.reviews).length.toLocaleString('en-IN')} real Zepto reviews from Play Store, App Store and YouTube, distilled into ${D.insights.length} insights across ${new Set(D.cats.map(c=>c.rq)).size} research questions. Every claim is backed by actual reviews shown below the answer.`;
 
   /* ── AI providers: same pattern as smart-missions (keys injected at deploy) ── */
   let GMODEL='gemini-3.5-flash';
@@ -149,7 +149,7 @@
     const insTxt=ev.ins.map(i=>`- [${i.id}] (${i.n} reviews) ${i.claim}\n  quotes: `+i.quotes.map(x=>`"${x.q}" [${x.id}]`).join(' | ')).join('\n');
     const catTxt=ev.cats.map(c=>`- ${c.rq} "${c.name}" (${c.n} reviews): ${c.desc}`).join('\n');
     const revTxt=ev.revs.map(x=>`- [${x.id}] (${x.r.app||'?'}, ${x.r.s||'?'}) "${x.r.text}"`).join('\n');
-    return `You are the research assistant for "NL Zepto", a study of quick-commerce user reviews (Zepto and peers) scraped from Play Store, App Store and YouTube, then clustered into insights.
+    return `You are the research assistant for "NL Zepto", a study of Zepto user reviews scraped from Play Store, App Store and YouTube, then clustered into insights.
 
 Answer the question using ONLY the evidence below. Be specific and quantitative where the data allows (review counts are real). Do NOT put review IDs or citation markers in the answer text — write clean prose. Separately list, in "cited", the IDs of every review you actually drew on (only IDs that appear in the evidence). If the evidence is thin for the question, say so honestly.
 
