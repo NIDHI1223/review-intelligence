@@ -132,14 +132,27 @@
 
   /* ── retrieval: cheap keyword scoring over insights, categories, reviews ── */
   const STOP=new Set('the a an is are was were do does did what which why how who when where about in on of for to with most that this those these there people users user say says most from and or not'.split(' '));
-  const toks=s=>String(s).toLowerCase().replace(/[^a-z0-9ऀ-ॿ ]/g,' ').split(/\s+/).filter(w=>w.length>2&&!STOP.has(w));
+  // reviews never say "cross-category" — they say habit, staples, trust. expand thesis
+  // vocabulary so the study's own research questions surface for thematic queries.
+  const SYN={
+    cross:['habit','routine','staples','trust','merchandise','discovery','basket','grocery'],
+    categories:['category','habit','routine','staples','merchandise','discovery','grocery'],
+    category:['habit','routine','staples','merchandise','discovery','grocery'],
+    explore:['discovery','habit','routine','trust','category','merchandise'],
+    exploring:['discovery','habit','routine','trust','category'],
+    discovery:['explore','category','habit','routine','recommendation'],
+  };
+  const toks=s=>{
+    const base=String(s).toLowerCase().replace(/[^a-z0-9ऀ-ॿ ]/g,' ').split(/\s+/).filter(w=>w.length>2&&!STOP.has(w));
+    return [...new Set(base.concat(...base.map(w=>SYN[w]||[])))];
+  };
   function score(text,qt){ const t=String(text).toLowerCase(); let s=0; for(const w of qt){ if(t.includes(w)) s++; } return s; }
   function retrieve(q){
     const qt=toks(q);
     const ins=D.insights.map(i=>({i,s:score(i.claim+' '+i.quotes.map(x=>x.q).join(' '),qt)}))
       .sort((a,b)=>b.s-a.s).slice(0,12).filter(x=>x.s>0).map(x=>x.i);
     const cats=D.cats.map(c=>({c,s:score(c.name+' '+c.desc,qt)}))
-      .sort((a,b)=>b.s-a.s).slice(0,8).filter(x=>x.s>0).map(x=>x.c);
+      .sort((a,b)=>b.s-a.s).slice(0,14).map(x=>x.c); // keep thematic context even on loose matches
     const revs=Object.entries(D.reviews).map(([id,r])=>({id,r,s:score(r.text+' '+(r.t||[]).join(' '),qt)}))
       .sort((a,b)=>b.s-a.s).slice(0,15).filter(x=>x.s>0);
     return {ins,cats,revs};
@@ -149,11 +162,16 @@
     const insTxt=ev.ins.map(i=>`- [${i.id}] (${i.n} reviews) ${i.claim}\n  quotes: `+i.quotes.map(x=>`"${x.q}" [${x.id}]`).join(' | ')).join('\n');
     const catTxt=ev.cats.map(c=>`- ${c.rq} "${c.name}" (${c.n} reviews): ${c.desc}`).join('\n');
     const revTxt=ev.revs.map(x=>`- [${x.id}] (${x.r.app||'?'}, ${x.r.s||'?'}) "${x.r.text}"`).join('\n');
-    return `You are the research assistant for "NL Zepto", a study of Zepto user reviews scraped from Play Store, App Store and YouTube, then clustered into insights.
+    return `You are the research assistant for "NL Zepto", a study of Zepto user reviews (Play Store, App Store, YouTube) clustered into insights, plus a first-party user survey. The study investigates why Zepto shopping stays locked in grocery and what would unlock cross-category discovery.
 
-Answer the question using ONLY the evidence below. Be specific and quantitative where the data allows (review counts are real). Do NOT put review IDs or citation markers in the answer text — write clean prose. Separately list, in "cited", the IDs of every review you actually drew on (only IDs that appear in the evidence). If the evidence is thin for the question, say so honestly.
+Answer the question using ONLY the evidence below. Synthesize across evidence types: when the question touches shopping behaviour, habits, or category exploration, connect the review evidence to the survey findings and organize causes by strength of evidence (lead with the best-supported cause, then secondary ones). Be specific and quantitative (review counts and survey percentages are real). Do NOT put review IDs or citation markers in the answer text — write clean prose. Separately list, in "cited", the IDs of every review you actually drew on (only IDs that appear in the evidence). If the evidence is thin for the question, say so honestly.
 
 QUESTION: "${q}"
+
+FIRST-PARTY SURVEY (n=14 Zepto users + interviews):
+- 57% mainly use Zepto for groceries — most journeys never leave grocery
+- 13 of 14 know Zepto sells other categories — awareness already exists
+- 71% would explore more if it matched their goal — interest exists, discovery doesn't
 
 RESEARCH INSIGHTS (id, supporting review count, claim, representative quotes):
 ${insTxt||'(none matched)'}
