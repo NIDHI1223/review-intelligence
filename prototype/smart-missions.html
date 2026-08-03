@@ -31,6 +31,9 @@
   .notch{position:absolute; top:0; left:50%; transform:translateX(-50%); width:130px; height:26px; background:#1c1430; border-radius:0 0 18px 18px; z-index:30}
   .screen{height:812px; overflow-y:auto; scrollbar-width:none; background:var(--appbg); display:flex; flex-direction:column}
   .screen::-webkit-scrollbar{display:none}
+  .view{display:flex; flex-direction:column; min-height:100%}
+  .stepper button{background:none; border:0; color:inherit; font:inherit; font-weight:800; cursor:pointer; padding:0 3px}
+  .citem .add{margin-bottom:5px; margin-left:auto}
 
   .appbar{background:var(--app); padding:34px 18px 12px; display:flex; align-items:center; gap:12px; position:sticky; top:0; z-index:20; border-bottom:1px solid var(--line)}
   .appbar .back{width:30px; height:30px; border-radius:50%; background:var(--lilac); color:var(--violet); display:grid; place-items:center; font-size:17px; flex:none}
@@ -121,9 +124,9 @@
   .mi .mcat{font-size:10px; color:var(--sub); font-weight:600}
   .mi .newtag{font-size:9px; font-weight:800; color:var(--magenta); background:var(--lilac); border:1px solid #f2d6e6; border-radius:20px; padding:1px 6px}
   .mi .mpr{font-size:12px; font-weight:800; color:var(--plum); margin-left:auto; margin-right:2px}
-  .mi .add{width:28px; height:28px; border-radius:50%; border:1.5px solid var(--violet); background:#fff; color:var(--violet); font-size:16px; font-weight:700; cursor:pointer; flex:none; display:grid; place-items:center; transition:all .16s}
-  .mi .add:hover{background:var(--lilac)}
-  .mi .add:focus-visible{outline:2px solid var(--violet); outline-offset:2px}
+  .mi .add,.citem .add{width:28px; height:28px; border-radius:50%; border:1.5px solid var(--violet); background:#fff; color:var(--violet); font-size:16px; font-weight:700; cursor:pointer; flex:none; display:grid; place-items:center; transition:all .16s}
+  .mi .add:hover,.citem .add:hover{background:var(--lilac)}
+  .mi .add:focus-visible,.citem .add:focus-visible{outline:2px solid var(--violet); outline-offset:2px}
   .mi.added{background:var(--good-soft); border-color:#bfe8d2}
   .mi.added .add{background:var(--good); border-color:var(--good); color:#fff}
 
@@ -178,28 +181,39 @@
 <div class="intro">
   <span class="kicker"><span class="sp" style="width:15px;height:15px;border-radius:5px"></span> Zepto · Smart Missions</span>
   <h1>Shopping that completes your thought</h1>
-  <p>This is your normal cart, right before checkout. Quietly, the app has worked out what you are trying to do and offers to finish it. Tap the Smart Missions bar, or open Something else and tell it a plan.</p>
+  <p>You land on a cart we've started for you — a live AI reads it, works out what you are trying to do, and offers to finish it. Tap ‹ to build your own basket from the shop, or tell the AI a plan in your own words.</p>
 </div>
 
 <div class="phone">
   <div class="notch"></div>
   <div class="toast" id="toast"></div>
   <div class="screen" id="screen">
+
+    <div class="view" id="shopview">
+      <div class="appbar">
+        <div class="tt">Zepto<small>Delivery to Home · Koramangala</small></div>
+      </div>
+      <div class="content">
+        <div class="deliv"><span class="di">🛵</span><div><div class="d1">Delivery in 9 minutes</div><div class="d2">Add products, then head to your cart</div></div></div>
+        <div class="cinput" style="margin:0"><input id="psearch" placeholder="Search for products…" autocomplete="off"/></div>
+        <div class="card" id="prodlist"></div>
+      </div>
+      <div class="paybar">
+        <div class="amt" id="shopamt">₹0<small id="shopcount">0 items</small></div>
+        <button class="pay" id="gocart">View cart ›</button>
+      </div>
+    </div>
+
+    <div class="view" id="cartview" style="display:none">
     <div class="appbar">
-      <div class="back">‹</div>
+      <button class="back" id="backshop" aria-label="Back to shop" style="border:0;cursor:pointer;font:inherit">‹</button>
       <div class="tt">Your cart<small>Delivery to Home · Koramangala</small></div>
     </div>
 
     <div class="content">
-      <div class="deliv"><span class="di">🛵</span><div><div class="d1">Delivery in 9 minutes</div><div class="d2">Shipment of 5 items</div></div></div>
+      <div class="deliv"><span class="di">🛵</span><div><div class="d1">Delivery in 9 minutes</div><div class="d2" id="shipnote">Shipment of 0 items</div></div></div>
 
-      <div class="card" id="cartcard">
-        <div class="citem"><div class="ce">🍫</div><div class="cmid"><div class="cn">Potato Chips</div><div class="cq">Snacks · 90 g</div></div><div class="cright"><div class="stepper">− 1 +</div><div class="cp">₹40</div></div></div>
-        <div class="citem"><div class="ce">🥤</div><div class="cmid"><div class="cn">Soft Drinks (2L)</div><div class="cq">Beverages · pack</div></div><div class="cright"><div class="stepper">− 1 +</div><div class="cp">₹99</div></div></div>
-        <div class="citem"><div class="ce">🧴</div><div class="cmid"><div class="cn">Sunscreen SPF 50</div><div class="cq">Personal care · 50 ml</div></div><div class="cright"><div class="stepper">− 1 +</div><div class="cp">₹199</div></div></div>
-        <div class="citem"><div class="ce">🍪</div><div class="cmid"><div class="cn">Cream Biscuits</div><div class="cq">Snacks · 120 g</div></div><div class="cright"><div class="stepper">− 1 +</div><div class="cp">₹32</div></div></div>
-        <div class="citem"><div class="ce">💧</div><div class="cmid"><div class="cn">Mineral Water</div><div class="cq">Beverages · 1 L ×4</div></div><div class="cright"><div class="stepper">− 1 +</div><div class="cp">₹40</div></div></div>
-      </div>
+      <div class="card" id="cartcard"></div>
 
       <div class="assist" id="assist" data-open="false">
         <div class="assist-in">
@@ -214,185 +228,387 @@
 
       <div class="card bill">
         <div class="billhead">Bill details</div>
-        <div class="brow"><span>Item total</span><b id="billitems">₹410</b></div>
+        <div class="brow"><span>Item total</span><b id="billitems">₹0</b></div>
         <div class="brow"><span>Delivery charge</span><span class="free">FREE</span></div>
-        <div class="brow"><span>Handling charge</span><b>₹9</b></div>
-        <div class="brow tot"><span>To pay</span><b id="billtot">₹419</b></div>
+        <div class="brow"><span>Handling charge</span><b id="billhand">₹0</b></div>
+        <div class="brow tot"><span>To pay</span><b id="billtot">₹0</b></div>
       </div>
     </div>
 
     <div class="paybar">
-      <div class="amt" id="payamt">₹419<small id="paycount">5 items</small></div>
+      <div class="amt" id="payamt">₹0<small id="paycount">0 items</small></div>
       <button class="pay">Proceed to pay ›</button>
     </div>
+    </div>
+
   </div>
 </div>
 
 <button class="reset" id="reset">↺ Start over</button>
-<p class="foot-note">Concept prototype for a product case study. Not affiliated with Zepto. Mission logic is illustrative and runs fully in your browser.</p>
+<p class="foot-note">Concept prototype for a product case study. Not affiliated with Zepto. Plans are generated live by AI (Google Gemini) from your cart and your own words.</p>
 
+<script src="keys.local.js"></script><!-- gitignored; present only in local dev -->
 <script>
-  const BASE_ITEMS = 410, HANDLING = 9;
-  const MISSIONS = {
-    pbm:{emoji:"🍛", title:"Paneer Butter Masala", have:"You already have paneer, tomatoes, onions and garam masala.", lead:"Finish the dish with", items:[
-      {e:"🧈",n:"Amul Butter",cat:"Dairy",p:56},{e:"🌿",n:"Kasuri Methi",cat:"Spices",p:45},
-      {e:"🥜",n:"Cashews",cat:"Dry fruits",p:180,isNew:true},{e:"🥛",n:"Fresh Cream",cat:"Dairy",p:66},
-      {e:"🫓",n:"Butter Naan",cat:"Frozen breads",p:99,isNew:true},{e:"🍚",n:"Basmati Rice",cat:"Staples",p:150},
-      {e:"🍮",n:"Gulab Jamun",cat:"Desserts",p:110,isNew:true},{e:"📄",n:"Aluminium Foil",cat:"Home essentials",p:79,isNew:true} ]},
-    palak:{emoji:"🥬", title:"Palak Paneer", have:"You already have paneer and onions.", lead:"Finish the dish with", items:[
-      {e:"🥬",n:"Fresh Spinach",cat:"Fresh",p:29},{e:"🧈",n:"Amul Butter",cat:"Dairy",p:56},
-      {e:"🥛",n:"Fresh Cream",cat:"Dairy",p:66},{e:"🌶️",n:"Green Chillies",cat:"Fresh",p:15},
-      {e:"🥜",n:"Cashews",cat:"Dry fruits",p:180,isNew:true},{e:"🍚",n:"Jeera Rice mix",cat:"Staples",p:120,isNew:true} ]},
-    dinner:{emoji:"🎉", title:"Hosting Dinner", have:"Your cart covers the main course.", lead:"The evening still needs", items:[
-      {e:"🍽️",n:"Serving Plates (set of 6)",cat:"Kitchenware",p:349,isNew:true},{e:"🥤",n:"Assorted Soft Drinks",cat:"Beverages",p:120,isNew:true},
-      {e:"🍨",n:"Tub of Ice Cream",cat:"Frozen desserts",p:260,isNew:true},{e:"🧀",n:"Cheese & Crackers",cat:"Gourmet",p:220,isNew:true},
-      {e:"🧻",n:"Paper Napkins",cat:"Home essentials",p:60,isNew:true},{e:"🕯️",n:"Scented Candle",cat:"Home decor",p:199,isNew:true},
-      {e:"🍫",n:"Dessert Chocolates",cat:"Confectionery",p:150,isNew:true} ]},
-    goa:{emoji:"🏖️", title:"Beach Trip to Goa", have:"Packing for a couple of days by the sea.", lead:"Easy to forget, good to have", items:[
-      {e:"🧴",n:"SPF 50 Sunscreen",cat:"Personal care",p:399,isNew:true},{e:"🕶️",n:"Sunglasses",cat:"Fashion",p:499,isNew:true},
-      {e:"⚡",n:"Electrolyte Sachets",cat:"Health",p:120,isNew:true},{e:"🧻",n:"Wet Wipes",cat:"Personal care",p:99,isNew:true},
-      {e:"🔋",n:"10000mAh Power Bank",cat:"Electronics",p:1299,isNew:true},{e:"🦟",n:"Mosquito Repellent",cat:"Home",p:85,isNew:true},
-      {e:"🥤",n:"Steel Sipper Bottle",cat:"Kitchenware",p:299,isNew:true},{e:"🍿",n:"Travel Snacks Pack",cat:"Snacks",p:145,isNew:true} ]},
-    weekendtrip:{emoji:"🏖️", title:"Weekend Road Trip", have:"You've got the snacks, drinks and sunscreen. The rest of the trip is easy to forget.", lead:"Good to have before you leave", items:[
-      {e:"💧",n:"ORS Sachets",cat:"Health",p:99,isNew:true},{e:"🧻",n:"Wet Wipes",cat:"Personal care",p:99,isNew:true},
-      {e:"🦟",n:"Mosquito Spray",cat:"Health",p:85,isNew:true},{e:"🔋",n:"10000mAh Power Bank",cat:"Electronics",p:1299,isNew:true},
-      {e:"🛋️",n:"Neck Pillow",cat:"Travel",p:499,isNew:true},{e:"🔌",n:"Charging Cable",cat:"Electronics",p:199,isNew:true},
-      {e:"🧴",n:"Hand Sanitizer",cat:"Personal care",p:75,isNew:true} ]},
-    apartment:{emoji:"🏠", title:"New Apartment Setup", have:"First day in a new place.", lead:"The essentials that make it livable", items:[
-      {e:"🧴",n:"Bathroom Cleaner",cat:"Cleaning",p:99,isNew:true},{e:"🗑️",n:"Dustbin",cat:"Home essentials",p:249,isNew:true},
-      {e:"♻️",n:"Garbage Bags",cat:"Cleaning",p:79,isNew:true},{e:"🧹",n:"Floor Cleaner",cat:"Cleaning",p:110,isNew:true},
-      {e:"💡",n:"LED Bulbs (pack)",cat:"Electricals",p:220,isNew:true},{e:"🔌",n:"Extension Board",cat:"Electronics",p:349,isNew:true},
-      {e:"🛏️",n:"Bedsheet",cat:"Home linen",p:599,isNew:true},{e:"🌸",n:"Air Freshener",cat:"Home",p:150,isNew:true} ]},
-    birthday:{emoji:"🎂", title:"Birthday at Home", have:"A small celebration to put together.", lead:"Bring the party in", items:[
-      {e:"🎂",n:"Cake",cat:"Bakery",p:499,isNew:true},{e:"🎈",n:"Balloons",cat:"Party",p:99,isNew:true},
-      {e:"🕯️",n:"Birthday Candles",cat:"Party",p:49,isNew:true},{e:"🍽️",n:"Paper Plates",cat:"Party",p:79,isNew:true},
-      {e:"🎁",n:"Gift Wrap",cat:"Stationery",p:60,isNew:true},{e:"🍫",n:"Chocolate Hamper",cat:"Confectionery",p:299,isNew:true},
-      {e:"🥤",n:"Soft Drinks",cat:"Beverages",p:120,isNew:true},{e:"🧸",n:"Return Gifts",cat:"Toys",p:250,isNew:true} ]},
-    puppy:{emoji:"🐶", title:"New Puppy at Home", have:"Welcoming a new member of the family.", lead:"Everything the pup needs on day one", items:[
-      {e:"🦴",n:"Puppy Food",cat:"Pet care",p:549,isNew:true},{e:"🧸",n:"Chew Toy",cat:"Pet care",p:199,isNew:true},
-      {e:"💩",n:"Poop Bags",cat:"Pet care",p:149,isNew:true},{e:"🥣",n:"Feeding Bowl",cat:"Pet care",p:249,isNew:true},
-      {e:"🧴",n:"Pet Shampoo",cat:"Pet care",p:279,isNew:true},{e:"🪢",n:"Leash & Collar",cat:"Pet accessories",p:399,isNew:true},
-      {e:"🧻",n:"Pee Pads",cat:"Pet care",p:320,isNew:true} ]},
-    matar:{emoji:"🍲", title:"Matar Paneer", have:"You already have paneer, tomatoes and onions.", lead:"Finish the dish with", items:[
-      {e:"🟢",n:"Green Peas",cat:"Frozen",p:60},{e:"🧈",n:"Amul Butter",cat:"Dairy",p:56},
-      {e:"🌿",n:"Kasuri Methi",cat:"Spices",p:45},{e:"🥛",n:"Fresh Cream",cat:"Dairy",p:66},
-      {e:"🫓",n:"Tandoori Roti",cat:"Frozen breads",p:89,isNew:true} ]},
-    mountains:{emoji:"⛰️", title:"Mountains & Camping", have:"Heading up to the cold and the quiet.", lead:"Pack these before you leave", items:[
-      {e:"🍜",n:"Instant Noodles & Soup",cat:"Ready to eat",p:120,isNew:true},{e:"🔦",n:"Headlamp Torch",cat:"Electronics",p:349,isNew:true},
-      {e:"🔋",n:"Power Bank",cat:"Electronics",p:1299,isNew:true},{e:"🩹",n:"First Aid Kit",cat:"Health",p:299,isNew:true},
-      {e:"🧴",n:"Lip Balm & Sunscreen",cat:"Personal care",p:250,isNew:true},{e:"🍫",n:"Energy Bars",cat:"Snacks",p:180,isNew:true},
-      {e:"🧦",n:"Thermal Socks",cat:"Fashion",p:299,isNew:true} ]},
-    citybreak:{emoji:"🏙️", title:"Weekend City Break", have:"A short trip, a light bag.", lead:"The easy to forget essentials", items:[
-      {e:"🧳",n:"Travel Toiletries Kit",cat:"Personal care",p:299,isNew:true},{e:"🔌",n:"Charging Cable",cat:"Electronics",p:199,isNew:true},
-      {e:"☂️",n:"Compact Umbrella",cat:"Accessories",p:349,isNew:true},{e:"😷",n:"Sanitizer & Masks",cat:"Health",p:120,isNew:true},
-      {e:"🍫",n:"Travel Snacks",cat:"Snacks",p:145,isNew:true},{e:"🧦",n:"Spare Socks",cat:"Fashion",p:149,isNew:true} ]},
-    gamenight:{emoji:"🎮", title:"Game Night", have:"Friends coming over to play.", lead:"Snacks and setup", items:[
-      {e:"🍿",n:"Popcorn & Nachos",cat:"Snacks",p:160,isNew:true},{e:"🥤",n:"Cola & Soft Drinks",cat:"Beverages",p:120,isNew:true},
-      {e:"🧀",n:"Dips & Salsa",cat:"Gourmet",p:220,isNew:true},{e:"🧊",n:"Ice Cubes",cat:"Frozen",p:60,isNew:true},
-      {e:"🥤",n:"Disposable Cups",cat:"Home essentials",p:79,isNew:true},{e:"🍫",n:"Chocolate Box",cat:"Confectionery",p:199,isNew:true} ]},
-    anniversary:{emoji:"💐", title:"Anniversary at Home", have:"Making tonight feel special.", lead:"Set the mood with", items:[
-      {e:"💐",n:"Fresh Flower Bouquet",cat:"Flowers",p:499,isNew:true},{e:"🎂",n:"Dessert Cake",cat:"Bakery",p:549,isNew:true},
-      {e:"🍫",n:"Premium Chocolates",cat:"Confectionery",p:399,isNew:true},{e:"🕯️",n:"Scented Candles",cat:"Home decor",p:299,isNew:true},
-      {e:"🥂",n:"Sparkling Juice",cat:"Beverages",p:250,isNew:true},{e:"💌",n:"Greeting Card",cat:"Stationery",p:99,isNew:true} ]},
-    kitten:{emoji:"🐱", title:"New Kitten at Home", have:"Welcoming a new little one.", lead:"Everything the kitten needs", items:[
-      {e:"🐟",n:"Kitten Food",cat:"Pet care",p:449,isNew:true},{e:"🪣",n:"Cat Litter",cat:"Pet care",p:399,isNew:true},
-      {e:"🧺",n:"Litter Tray",cat:"Pet care",p:299,isNew:true},{e:"🧶",n:"Cat Toy",cat:"Pet care",p:149,isNew:true},
-      {e:"🥣",n:"Feeding Bowl",cat:"Pet care",p:199,isNew:true},{e:"🐾",n:"Scratching Post",cat:"Pet accessories",p:599,isNew:true} ]},
-  };
+  const HANDLING = 9;
+  const PRODUCTS = [
+    {e:"🍫",n:"Potato Chips 90g",cat:"Grocery",p:40},
+    {e:"🍿",n:"Popcorn",cat:"Grocery",p:60},
+    {e:"🍪",n:"Cream Biscuits",cat:"Grocery",p:32},
+    {e:"🥤",n:"Soft Drinks 2L",cat:"Grocery",p:99},
+    {e:"💧",n:"Mineral Water 1L ×4",cat:"Grocery",p:40},
+    {e:"🧀",n:"Paneer 200g",cat:"Grocery",p:89},
+    {e:"🧈",n:"Amul Butter 100g",cat:"Grocery",p:56},
+    {e:"🍅",n:"Tomatoes 1kg",cat:"Grocery",p:45},
+    {e:"🧅",n:"Onions 1kg",cat:"Grocery",p:38},
+    {e:"🥬",n:"Spinach Bunch",cat:"Grocery",p:29},
+    {e:"🧴",n:"Sunscreen SPF 50",cat:"Personal care",p:199},
+    {e:"🧻",n:"Wet Wipes",cat:"Personal care",p:99},
+    {e:"🎈",n:"Balloons Pack",cat:"Home care",p:99},
+    {e:"🥤",n:"Disposable Cups",cat:"Home care",p:79},
+    {e:"🎂",n:"Chocolate Cake 500g",cat:"Grocery",p:499},
+    {e:"🕯️",n:"Scented Candle",cat:"Home care",p:199},
+    {e:"🦴",n:"Dog Food 1kg",cat:"Pet care",p:549},
+    {e:"🔋",n:"10000mAh Power Bank",cat:"Electronics",p:1299},
+    {e:"🩹",n:"First Aid Kit",cat:"Health",p:299},
+    {e:"⚡",n:"Electrolyte Sachets",cat:"Health",p:120},
+  ];
+  const sel = new Map(); // product index -> qty
+  function cartDesc(){
+    const parts=[]; sel.forEach((q,id)=>{const p=PRODUCTS[id]; parts.push(p.n+(q>1?' ×'+q:'')+' ('+p.cat+') ₹'+p.p*q);});
+    return parts.join(', ');
+  }
 
+  /* ── live AI: Google Gemini ── */
+  // Benchmarked 2026-08 for the embedded key: gemini-3.5-flash + minimal thinking ≈ 1.4-2.2s/call,
+  // vs 5-6.5s with default thinking. gemini-3.6-flash rate-limits after 1 call — avoid.
+  let GMODEL = 'gemini-3.5-flash';
+  // keys live in .env locally and in GitHub Actions secrets; the deploy workflow
+  // substitutes these placeholders into the published page
+  const EMBED_KEY = '__GEMINI_KEY__';
+  const real = k => k && k.indexOf('__')!==0 ? k : '';
+
+  async function pickModel(){ // fallback only: runs if the hardcoded model ever gets deprecated
+    if(GMODEL) return GMODEL;
+    const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200&key='+encodeURIComponent(getKey()));
+    if(!r.ok){
+      const err=await r.json().catch(()=>null);
+      throw new Error((err&&err.error&&err.error.message)||('Could not list models: HTTP '+r.status));
+    }
+    const d=await r.json();
+    const names=(d.models||[])
+      .filter(m=>(m.supportedGenerationMethods||[]).includes('generateContent'))
+      .map(m=>m.name.replace('models/',''));
+    GMODEL = names.find(n=>n==='gemini-flash-latest')
+      || names.filter(n=>/flash/i.test(n)&&!/(image|live|tts|audio|lite|8b)/i.test(n))
+              .sort((a,b)=>b.localeCompare(a,undefined,{numeric:true}))[0];
+    if(!GMODEL) throw new Error('No usable Gemini model available for this API key');
+    return GMODEL;
+  }
+  const qkey = new URLSearchParams(location.search).get('key');
+  if (qkey) localStorage.setItem('gemini_key', qkey);
+  const LK = window.LOCAL_KEYS || {};
+  const getKey = () => real(EMBED_KEY) || LK.gemini || localStorage.getItem('gemini_key') || '';
+  const groqKey = () => real(GROQ_KEY) || LK.groq || '';
+
+  // Flash models "think" before answering by default — the main latency cost here.
+  // 'minimal' is benchmarked-correct for gemini-3.5-flash; if a fallback model
+  // rejects the knob, step down minimal → budget → none on a 400.
+  let THINK_MODE = 'minimal';
+  const THINK_CFG = {minimal:{thinkingConfig:{thinkingLevel:'minimal'}}, budget:{thinkingConfig:{thinkingBudget:0}}, none:{}};
+
+  async function aiGemini(prompt, _rerolled){
+    const model = await pickModel();
+    const gen = Object.assign({responseMimeType:'application/json', temperature:0.7}, THINK_CFG[THINK_MODE]||{});
+    const r = await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent?key='+encodeURIComponent(getKey()), {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({contents:[{parts:[{text:prompt}]}], generationConfig:gen})
+    });
+    if(!r.ok){
+      const err=await r.json().catch(()=>null);
+      const msg=(err&&err.error&&err.error.message)||('HTTP '+r.status);
+      if(!_rerolled && /not (available|found|supported)|deprecated/i.test(msg)){
+        GMODEL=''; // hardcoded model rotted — re-resolve from ListModels once
+        return aiGemini(prompt, true);
+      }
+      if(r.status===429 || /quota|exceed/i.test(msg)){
+        throw new Error('The AI hit its per-minute limit — wait ~30 seconds and tap Try again.');
+      }
+      if(r.status===400 && THINK_MODE!=='none'){
+        // 400s for a rejected thinking knob are often generic ("invalid argument"),
+        // so step down on any 400 and retry; a real bad request still fails at 'none'
+        THINK_MODE = THINK_MODE==='minimal'?'budget':'none';
+        return aiGemini(prompt, _rerolled);
+      }
+      throw new Error(msg);
+    }
+    const d = await r.json();
+    const txt = d.candidates[0].content.parts[0].text;
+    try{ return JSON.parse(txt); }
+    catch(e){
+      const m = txt.match(/\{[\s\S]*\}/); // strip code fences / preamble / trailing junk
+      if(m){ try{ return JSON.parse(m[0]); }catch(_){} }
+      if(!_rerolled) return aiGemini(prompt, true); // model emitted broken JSON — reroll once
+      throw new Error('AI returned malformed JSON — please try again');
+    }
+  }
+
+  // Free-tier stacking: Groq (llama-3.3-70b, ~0.5s, enforced-JSON mode) picks up
+  // whenever Gemini errors or is rate-limited — separate provider, separate quota.
+  const GROQ_KEY = '__GROQ_KEY__';
+  async function aiGroq(prompt){
+    if(!groqKey()) throw new Error('no groq key configured');
+    const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer '+groqKey()},
+      body: JSON.stringify({model:'llama-3.3-70b-versatile', temperature:0.7,
+        response_format:{type:'json_object'}, messages:[{role:'user',content:prompt}]})
+    });
+    if(!r.ok){
+      const err=await r.json().catch(()=>null);
+      throw new Error((err&&err.error&&err.error.message)||('Groq HTTP '+r.status));
+    }
+    const d=await r.json();
+    return JSON.parse(d.choices[0].message.content);
+  }
+
+  async function ai(prompt){
+    try{ return await aiGemini(prompt); }
+    catch(e){
+      try{ return await aiGroq(prompt); }
+      catch(_){ throw e; } // both down — surface the primary error
+    }
+  }
+
+  const PLAN_PROMPT = plan => `You are "Smart Missions", the AI shopping planner inside Zepto, an Indian 10-minute grocery and essentials delivery app.
+
+The user's current cart: ${cartDesc()||'empty'}.
+The user's plan: "${plan}"
+
+Build a shopping mission that completes this plan. RELEVANCE FIRST: every item must be something this shopper would genuinely need for this exact plan — if it wouldn't appear on a sensible prep/packing list for the plan, leave it out entirely. NEVER pad with generic groceries (no random bread, croissants, staples) just to fill a category. 6-10 items total. Only items a quick-commerce app realistically sells. Skip anything the cart already covers. Realistic Indian prices in whole rupees.
+"cat" MUST be exactly one of these broad store categories — never invent smaller ones: Grocery, Personal care, Home care, Pet care, Health, Electronics, Fashion. ALL food and drink (snacks, beverages, dairy, bakery, fresh produce, staples) is "Grocery".
+
+Reply with ONLY this JSON, nothing else — keep items of the same category adjacent:
+{"emoji":"one emoji","title":"mission title, 2-4 words","have":"one warm sentence on what their cart already covers for this plan","lead":"short phrase introducing the list, e.g. Pack these before you leave","items":[{"e":"emoji","n":"item name","cat":"category","p":149,"isNew":true}]}
+"isNew" is true when the category is one this shopper rarely opens.`;
+
+  const GUESS_PROMPT = () => `A shopper on Zepto (Indian 10-minute delivery app) has this cart: ${cartDesc()}.
+Guess the single most likely plan behind this basket, plus 3 other plausible plans for the SAME basket — distinct from each other and from the main guess. Reply with ONLY this JSON, nothing else:
+{"emoji":"one emoji","guess":"short gerund phrase, e.g. Packing for a weekend road trip","alts":[{"e":"emoji","t":"short plan phrase, e.g. Hosting a game night"}]}`;
+
+  // fixed broad taxonomy — the AI must not invent micro-categories like "Bakery"
+  const CATS=['Grocery','Personal care','Home care','Pet care','Health','Electronics','Fashion'];
+  function normCat(c){
+    c=String(c||'').toLowerCase();
+    const hit=CATS.find(x=>x.toLowerCase()===c);
+    if(hit) return hit;
+    if(/pet/.test(c)) return 'Pet care';
+    if(/personal|beauty|hygiene|cosmetic|skin|toiletr/.test(c)) return 'Personal care';
+    if(/home|clean|kitchen|party|decor|essential|stationer/.test(c)) return 'Home care';
+    if(/health|pharma|wellness|first aid|medic/.test(c)) return 'Health';
+    if(/electronic|gadget|charg|power/.test(c)) return 'Electronics';
+    if(/fashion|apparel|cloth|wear|accessor/.test(c)) return 'Fashion';
+    return 'Grocery';
+  }
+  function cleanMission(m){
+    const items=(m.items||[]).filter(i=>i&&i.n&&+i.p>0).slice(0,12)
+      .map(i=>({e:String(i.e||'🛒'),n:String(i.n),cat:normCat(i.cat),p:Math.round(+i.p),isNew:!!i.isNew}));
+    if(!items.length) throw new Error('empty plan');
+    return {emoji:String(m.emoji||'✨'),title:String(m.title||'Your plan'),have:String(m.have||''),lead:String(m.lead||'You might need'),items};
+  }
   const GENRES = {
-    cook:{q:"What are you making?", opts:[{l:"Paneer Butter Masala",m:"pbm"},{l:"Palak Paneer",m:"palak"},{l:"Matar Paneer",m:"matar"}]},
-    travel:{q:"Where are you headed?", opts:[{l:"Weekend trip",m:"weekendtrip"},{l:"Beach trip",m:"goa"},{l:"Mountains & camping",m:"mountains"},{l:"Weekend city break",m:"citybreak"}]},
-    host:{q:"What are you hosting?", opts:[{l:"Dinner party",m:"dinner"},{l:"Game night",m:"gamenight"},{l:"A birthday",m:"birthday"}]},
-    move:{m:"apartment"},
-    pet:{q:"Who is joining the family?", opts:[{l:"A puppy",m:"puppy"},{l:"A kitten",m:"kitten"}]},
-    celebrate:{q:"What are you celebrating?", opts:[{l:"A birthday",m:"birthday"},{l:"An anniversary",m:"anniversary"}]},
+    travel:{label:"Travelling", q:"Where are you headed, and for how long?", ph:"e.g. 3 days in Goa with friends"},
+    host:{label:"Hosting guests", q:"What's the plan, and how many people?", ph:"e.g. dinner party for 6 on Saturday"},
+    move:{label:"Moving home", q:"What kind of place are you setting up?", ph:"e.g. new 1BHK, first apartment"},
+    celebrate:{label:"Celebrating", q:"What are you celebrating?", ph:"e.g. my daughter's 5th birthday"},
+    pet:{label:"New pet", q:"Who is joining the family?", ph:"e.g. a 2-month-old labrador puppy"},
+    cook:{label:"Cooking a recipe", q:"What are you making?", ph:"e.g. paneer butter masala for 4"},
   };
 
   const assist=document.getElementById('assist'), ahead=document.getElementById('ahead'), abody=document.getElementById('abody');
-  let cartTotal=BASE_ITEMS, cartCount=5;
+  let missionTotal=0, missionCount=0; // Smart Missions add-ons, on top of chosen products
   function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;')}
   function money(n){return '₹'+n.toLocaleString('en-IN')}
   function updateBill(){
-    document.getElementById('billitems').textContent=money(cartTotal);
-    document.getElementById('billtot').textContent=money(cartTotal+HANDLING);
-    document.getElementById('payamt').firstChild.textContent=money(cartTotal+HANDLING);
-    document.getElementById('paycount').textContent=cartCount+' items';
+    let pt=0, pc=0; sel.forEach((q,id)=>{pt+=PRODUCTS[id].p*q; pc+=q;});
+    const t=pt+missionTotal, c=pc+missionCount, hand=c?HANDLING:0;
+    document.getElementById('billitems').textContent=money(t);
+    document.getElementById('billhand').textContent=money(hand);
+    document.getElementById('billtot').textContent=money(t+hand);
+    document.getElementById('payamt').firstChild.textContent=money(t+hand);
+    document.getElementById('paycount').textContent=c+' items';
+    document.getElementById('shipnote').textContent='Shipment of '+c+' items';
+    document.getElementById('shopamt').firstChild.textContent=money(t);
+    document.getElementById('shopcount').textContent=c+' items';
+    document.getElementById('gocart').textContent=pc?'View cart ('+pc+') ›':'View cart ›';
+  }
+
+  /* ── shop & cart ── */
+  function stepperHtml(id,q){
+    return q?`<span class="stepper"><button data-a="-" data-id="${id}" aria-label="Remove one">−</button> ${q} <button data-a="+" data-id="${id}" aria-label="Add one">+</button></span>`
+            :`<button class="add" data-a="+" data-id="${id}" aria-label="Add">+</button>`;
+  }
+  function wireBumps(box,rerender){
+    box.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{
+      const id=+b.dataset.id, d=b.dataset.a==='+'?1:-1, q=(sel.get(id)||0)+d;
+      q>0?sel.set(id,q):sel.delete(id);
+      // cart changed → any AI guess/mission is stale; drop mission add-ons and collapse the widget
+      nav++; missionTotal=0; missionCount=0; lastAlts=[]; spec=null; abody.innerHTML=''; open('false'); resetHead();
+      updateBill(); rerender();
+    });
+  }
+  function renderShop(){
+    const f=(document.getElementById('psearch').value||'').trim().toLowerCase();
+    const box=document.getElementById('prodlist');
+    const rows=PRODUCTS.map((p,id)=>({p,id})).filter(({p})=>!f||p.n.toLowerCase().includes(f)||p.cat.toLowerCase().includes(f));
+    box.innerHTML=rows.map(({p,id})=>`
+      <div class="citem"><div class="ce">${p.e}</div>
+        <div class="cmid"><div class="cn">${p.n}</div><div class="cq">${p.cat}</div></div>
+        <div class="cright">${stepperHtml(id,sel.get(id)||0)}<div class="cp">${money(p.p)}</div></div>
+      </div>`).join('')||'<p style="padding:14px 4px;font-size:12.5px;color:var(--sub)">No products match your search.</p>';
+    wireBumps(box,renderShop);
+  }
+  function renderCart(){
+    const box=document.getElementById('cartcard');
+    const rows=[...sel.entries()];
+    box.innerHTML=rows.map(([id,q])=>{const p=PRODUCTS[id]; return `
+      <div class="citem"><div class="ce">${p.e}</div>
+        <div class="cmid"><div class="cn">${p.n}</div><div class="cq">${p.cat}</div></div>
+        <div class="cright">${stepperHtml(id,q)}<div class="cp">${money(p.p*q)}</div></div>
+      </div>`;}).join('')||'<p style="padding:14px 4px;font-size:12.5px;color:var(--sub)">Your cart is empty — add something from the shop.</p>';
+    wireBumps(box,renderCart);
+  }
+  function showView(v){
+    document.getElementById('shopview').style.display=v==='shop'?'':'none';
+    document.getElementById('cartview').style.display=v==='cart'?'':'none';
+    document.getElementById('screen').scrollTop=0;
+    if(v==='cart'){
+      renderCart();
+      // guess the plan the moment the cart opens — don't wait for a tap
+      if(getKey() && sel.size && !abody.innerHTML.trim()){ open('true'); renderGuess(); }
+    } else renderShop();
   }
   let toastT;
   function toast(msg){const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove('show'),1700);}
 
   function open(v){assist.dataset.open=v; ahead.setAttribute('aria-expanded',v);}
 
-  function renderGuess(){
+  let nav=0; // bumped on every view change; in-flight AI responses for a stale view are dropped
+  let lastAlts=[]; // alternative plans from the last guess, shown on "Not quite"
+  let spec=null;   // speculative plan for the current guess, generated while the user decides
+
+  // Every AI answer is cached by cart signature — repeat demos with the same
+  // basket cost ZERO quota and render instantly. Critical: the embedded key has
+  // a small free-tier daily cap, and viewers may open this after it's spent.
+  let RCACHE={}; try{ RCACHE=JSON.parse(localStorage.getItem('rcache4')||'{}'); }catch(_){}
+  function cachePut(k,v){ RCACHE[k]=v; try{ localStorage.setItem('rcache4',JSON.stringify(RCACHE)); }catch(_){} }
+
+  const fetchMission = async plan => {
+    const k='p:'+cartDesc()+'|'+plan;
+    if(RCACHE[k]) return cleanMission(RCACHE[k]);
+    const raw=await ai(PLAN_PROMPT(plan));
+    const m=cleanMission(raw); cachePut(k,raw); return m;
+  };
+
+  function setHead(t1,t2){document.querySelector('#ahead .ah1').textContent=t1; document.querySelector('#ahead .ah2').textContent=t2;}
+  const resetHead=()=>setHead('✨ Before you check out…','One quick thing we spotted. Tap to see');
+
+  async function renderGuess(){
+    const my=++nav;
+    const sig=cartDesc();
+    let g=RCACHE['g:'+sig];
+    if(!g){
+      thinking('Reading your cart');
+      setHead('✨ Reading your cart…','Working out your plan');
+      try{ g=await ai(GUESS_PROMPT()); }catch(e){ if(my===nav){resetHead(); renderConv();} return; }
+      if(my!==nav) return;
+      cachePut('g:'+sig,g);
+    }
+    lastAlts=(Array.isArray(g.alts)?g.alts:[]).filter(a=>a&&a.t).slice(0,4);
+    setHead(String(g.emoji||'✨')+' '+String(g.guess||'Before you check out…'),'Our guess from your cart — tap to see');
+    const gp=String(g.guess||'');
+    if(!(spec&&spec.plan===gp)) spec={plan:gp, promise:fetchMission(gp).catch(()=>null)}; // so "Yes" is instant
     abody.innerHTML=`
       <div class="mission">
         <p class="asub">From what is in your cart, it looks like you are</p>
-        <div class="gv-dish">🏖️ Packing for a weekend road trip</div>
+        <div class="gv-dish">${esc(String(g.emoji||'✨'))} ${esc(String(g.guess||'planning something'))}</div>
         <p class="gv-q">Did we get that right?</p>
         <div class="confirm">
           <button class="cbtn yes">👍 Yes</button>
           <button class="cbtn no">👎 Not quite</button>
         </div>
       </div>`;
-    abody.querySelector('.yes').onclick=()=>renderMission('weekendtrip');
+    abody.querySelector('.yes').onclick=()=>generateMission(String(g.guess||''));
     abody.querySelector('.no').onclick=renderConv;
   }
 
-  function renderMission(key){
-    const m=MISSIONS[key]; if(!m){renderConv();return;}
-    const cats=[...new Set(m.items.filter(i=>i.isNew).map(i=>i.cat))];
-    const itemsHtml=m.items.map((it,i)=>`
+  async function generateMission(plan){
+    const my=++nav;
+    thinking('Putting your list together');
+    setHead('✨ '+String(plan).slice(0,60),'Putting your list together…');
+    try{
+      const m=(spec&&spec.plan===plan?await spec.promise:null)||await fetchMission(plan);
+      if(my===nav) renderMission(m);
+    }catch(e){
+      console.error(e);
+      if(my===nav) renderError(()=>generateMission(plan), e.message);
+    }
+  }
+
+  function renderError(retry, detail){
+    nav++;
+    abody.innerHTML=`
+      <div class="conv">
+        <div class="cq2">Hmm, that didn't go through.<span>${esc(String(detail||'Check your connection and API key, then try again.')).slice(0,300)}</span></div>
+        <div class="confirm" style="margin-top:11px">
+          <button class="cbtn yes" id="rtry">Try again</button>
+          <button class="cbtn no" id="rback">‹ Back</button>
+        </div>
+        <div class="exhint" style="margin-top:10px"><button class="backlink" id="rkey" style="margin:0">Change API key</button></div>
+      </div>`;
+    document.getElementById('rtry').onclick=retry;
+    document.getElementById('rback').onclick=renderConv;
+    document.getElementById('rkey').onclick=()=>{localStorage.removeItem('gemini_key'); renderKeySetup();};
+  }
+
+  function renderMission(m){
+    nav++;
+    setHead(m.emoji+' '+m.title,'Your plan, completed');
+    // group by category — the categories ARE the feature
+    const cats=[], byCat={};
+    m.items.forEach((it,i)=>{ const c=it.cat||'More'; if(!byCat[c]){byCat[c]=[]; cats.push(c);} byCat[c].push({it,i}); });
+    const row=({it,i})=>`
       <div class="mi" data-i="${i}" data-p="${it.p}">
-        <div class="mie">${it.e}</div>
-        <div><div class="mn">${esc(it.n)}</div><div class="mtagrow"><span class="mcat">${esc(it.cat)}</span>${it.isNew?'<span class="newtag">New for you</span>':''}</div></div>
+        <div class="mie">${esc(it.e)}</div>
+        <div><div class="mn">${esc(it.n)}</div>${it.isNew?'<div class="mtagrow"><span class="newtag">New for you</span></div>':''}</div>
         <span class="mpr">${money(it.p)}</span>
         <button class="add" aria-label="Add ${esc(it.n)}">+</button>
-      </div>`).join('');
+      </div>`;
+    const itemsHtml=cats.map(c=>`<div class="mlead">${esc(c)}</div><div class="items">${byCat[c].map(row).join('')}</div>`).join('');
     abody.innerHTML=`
       <div class="mission">
         <button class="backlink" id="back">‹ Not quite this</button>
-        <div class="mtitle">${m.emoji} ${esc(m.title)}</div>
+        <div class="mtitle">${esc(m.emoji)} ${esc(m.title)}</div>
         <div class="mhave">${esc(m.have)}</div>
-        <span class="catcount">Spans ${cats.length} categories you rarely open</span>
-        <div class="mlead">${esc(m.lead)}</div>
-        <div class="items">${itemsHtml}</div>
+        <span class="catcount">${cats.length} categories for this plan</span>
+        ${itemsHtml}
         <div class="mfoot"><button class="addall" id="addall">Add all to cart</button><span class="mcount" id="mcount">0 of ${m.items.length} added</span></div>
       </div>`;
     const rows=[...abody.querySelectorAll('.mi')];
     function refresh(){
-      const added=rows.filter(r=>r.classList.contains('added'));
-      const newCats=[...new Set(added.filter(r=>r.querySelector('.newtag')).map(r=>r.querySelector('.mcat').textContent))].length;
-      document.getElementById('mcount').textContent = added.length===0?`0 of ${m.items.length} added`:`${added.length} added`+(newCats?` · ${newCats} new categories`:'');
+      const added=rows.filter(r=>r.classList.contains('added')).length;
+      document.getElementById('mcount').textContent = added+' of '+m.items.length+' added';
+      const all=document.getElementById('addall');
+      if(added<m.items.length){ all.textContent='Add all to cart'; all.style.background=''; }
     }
     function setRow(r,on){
       const was=r.classList.contains('added'); if(was===on) return;
       r.classList.toggle('added',on); r.querySelector('.add').textContent=on?'✓':'+';
-      const p=+r.dataset.p; cartTotal+=on?p:-p; cartCount+=on?1:-1; updateBill();
+      const p=+r.dataset.p; missionTotal+=on?p:-p; missionCount+=on?1:-1; updateBill();
     }
-    rows.forEach(r=>r.querySelector('.add').onclick=()=>setRow(r,!r.classList.contains('added')));
-    document.getElementById('addall').onclick=e=>{rows.forEach(r=>setRow(r,true)); refresh(); e.target.textContent='Added to cart ✓'; e.target.style.background='var(--good)'; toast(m.items.length+' items added across '+cats.length+' new categories');};
-    document.getElementById('back').onclick=renderGuess;
+    rows.forEach(r=>r.querySelector('.add').onclick=()=>{setRow(r,!r.classList.contains('added')); refresh();});
+    document.getElementById('addall').onclick=e=>{rows.forEach(r=>setRow(r,true)); refresh(); e.target.textContent='Added to cart ✓'; e.target.style.background='var(--good)'; toast(m.items.length+' items added');};
+    document.getElementById('back').onclick=renderConv;
     refresh();
   }
-
-  const MATCH=[
-    {k:['matar','mutter','peas'],m:'matar'},
-    {k:['palak','spinach'],m:'palak'},
-    {k:['paneer butter','butter masala','pbm','cook','recipe','making'],m:'pbm'},
-    {k:['weekend trip','road trip','weekend','getaway','outing'],m:'weekendtrip'},
-    {k:['goa','beach','sea'],m:'goa'},
-    {k:['mountain','manali','trek','camp','hill','ladakh','shimla','snow'],m:'mountains'},
-    {k:['city','trip','travel','holiday','vacation','flight'],m:'citybreak'},
-    {k:['game night','poker','cards','gaming'],m:'gamenight'},
-    {k:['dinner','guest','host'],m:'dinner'},
-    {k:['anniversary'],m:'anniversary'},
-    {k:['birthday','celebrat','party'],m:'birthday'},
-    {k:['kitten','cat'],m:'kitten'},
-    {k:['puppy','dog','pet'],m:'puppy'},
-    {k:['apartment','flat','moving','shift','house','new place','room'],m:'apartment'},
-  ];
-  function resolve(t){t=t.toLowerCase(); for(const r of MATCH){if(r.k.some(w=>t.includes(w)))return r.m;} return null;}
 
   const GENRE_CHIPS=`
     <button class="chip" data-g="travel">✈️ Travelling</button>
@@ -402,45 +618,73 @@
     <button class="chip" data-g="pet">🐶 New pet</button>
     <button class="chip" data-g="cook">🍳 Cooking a recipe</button>`;
 
-  function wireGenreChips(){ abody.querySelectorAll('.chip[data-g]').forEach(c=>c.onclick=()=>pickGenre(c.dataset.g)); }
-  function pickGenre(g){ const gen=GENRES[g]; if(!gen) return; if(gen.m){thinking(gen.m); return;} renderFollow(g); }
+  function wireGenreChips(){ abody.querySelectorAll('.chip[data-g]').forEach(c=>c.onclick=()=>renderFollow(c.dataset.g)); }
   function renderFollow(g){
+    nav++;
     const gen=GENRES[g];
     abody.innerHTML=`
       <div class="conv">
         <button class="backlink" id="backf">‹ Back</button>
-        <div class="cq2">${gen.q}<span>Pick one, or type it above.</span></div>
-        <div class="chips" style="margin-top:11px">${gen.opts.map(o=>`<button class="chip" data-m="${o.m}">${o.l}</button>`).join('')}</div>
+        <div class="cq2">${gen.q}<span>A few words is enough — the AI does the rest.</span></div>
+        <div class="cinput"><input id="fin" placeholder="${gen.ph}" autocomplete="off"/><button id="fsend" aria-label="Send">→</button></div>
       </div>`;
     document.getElementById('backf').onclick=renderConv;
-    abody.querySelectorAll('.chip').forEach(c=>c.onclick=()=>thinking(c.dataset.m));
+    const send=()=>{const v=document.getElementById('fin').value.trim(); if(!v)return; generateMission(gen.label+' — '+v);};
+    document.getElementById('fsend').onclick=send;
+    document.getElementById('fin').addEventListener('keydown',e=>{if(e.key==='Enter')send();});
+    document.getElementById('fin').focus();
   }
 
   function renderConv(){
+    nav++;
+    const alts=lastAlts.map((a,i)=>`<button class="chip" data-alt="${i}">${esc(String(a.e||'✨'))} ${esc(String(a.t))}</button>`).join('');
     abody.innerHTML=`
       <div class="conv">
-        <button class="backlink" id="back2">‹ Back</button>
         <div class="cq2">What's today's plan?<span>Tell me in your own words. It stays private to this order.</span></div>
         <div class="cinput"><input id="cin" placeholder="Describe your plan…" autocomplete="off"/><button id="csend" aria-label="Send">→</button></div>
         <div class="exhint">For example, a weekend trip, going camping, or hosting friends</div>
-        <div class="exlabel">Quick suggestions ⭐</div>
-        <div class="chips">${GENRE_CHIPS}</div>
+        <div class="exlabel">${alts?'Or was it one of these?':'Quick suggestions ⭐'}</div>
+        <div class="chips">${alts||GENRE_CHIPS}</div>
       </div>`;
-    document.getElementById('back2').onclick=renderGuess;
-    wireGenreChips();
-    const send=()=>{const v=document.getElementById('cin').value.trim(); if(!v)return; const m=resolve(v); m?thinking(m):notFound();};
+    if(alts) abody.querySelectorAll('.chip[data-alt]').forEach(c=>c.onclick=()=>generateMission(lastAlts[+c.dataset.alt].t));
+    else wireGenreChips();
+    const send=()=>{const v=document.getElementById('cin').value.trim(); if(!v)return; generateMission(v);};
     document.getElementById('csend').onclick=send;
     document.getElementById('cin').addEventListener('keydown',e=>{if(e.key==='Enter')send();});
     document.getElementById('cin').focus();
   }
-  function thinking(m){abody.innerHTML=`<div class="think"><span class="sp breathe"></span><span class="tt">Putting your list together</span><span class="dots-i"><i></i><i></i><i></i></span></div>`; setTimeout(()=>renderMission(m),800);}
-  function notFound(){abody.innerHTML=`<div class="conv"><button class="backlink" id="back3">‹ Back</button><div class="cq2">Noted, I am still learning that one.<span>Pick the closest and I will take it from there.</span></div><div class="chips" style="margin-top:11px">${GENRE_CHIPS}</div></div>`; document.getElementById('back3').onclick=renderConv; wireGenreChips();}
 
-  ahead.onclick=()=>{ const now=assist.dataset.open==='true'; open(now?'false':'true'); if(!now && !abody.innerHTML.trim()) renderGuess(); };
-  document.getElementById('reset').onclick=()=>{cartTotal=BASE_ITEMS; cartCount=5; updateBill(); open('false'); renderGuess(); document.getElementById('screen').scrollTop=0; location.hash='';};
-  renderGuess(); updateBill();
+  function thinking(label){abody.innerHTML=`<div class="think"><span class="sp breathe"></span><span class="tt">${label}</span><span class="dots-i"><i></i><i></i><i></i></span></div>`;}
+
+  function renderKeySetup(){
+    nav++;
+    abody.innerHTML=`
+      <div class="conv">
+        <div class="cq2">One-time setup<span>Plans here are generated live by Google Gemini. Paste a free API key — no card needed.</span></div>
+        <div class="cinput"><input id="kin" placeholder="Paste your Gemini API key…" autocomplete="off"/><button id="ksend" aria-label="Save">→</button></div>
+        <div class="exhint">Get one free at <b>aistudio.google.com/apikey</b> → Create API key. Stored only in this browser.</div>
+      </div>`;
+    const save=()=>{const v=document.getElementById('kin').value.trim(); if(!v)return; localStorage.setItem('gemini_key',v); renderGuess();};
+    document.getElementById('ksend').onclick=save;
+    document.getElementById('kin').addEventListener('keydown',e=>{if(e.key==='Enter')save();});
+  }
+
+  function start(){
+    if(!getKey()){ renderKeySetup(); return; }
+    sel.size?renderGuess():renderConv(); // nothing chosen yet → nothing to guess from, just ask
+  }
+
+  ahead.onclick=()=>{ const now=assist.dataset.open==='true'; open(now?'false':'true'); if(!now && !abody.innerHTML.trim()) start(); };
+  document.getElementById('gocart').onclick=()=>showView('cart');
+  document.getElementById('backshop').onclick=()=>showView('shop');
+  document.getElementById('psearch').addEventListener('input',renderShop);
+  // start on the cart with a ready-made basket so the AI feature shows itself;
+  // ‹ Back takes the user to the shop to build their own
+  const DEMO_BASKET=[12,14,13,3]; // balloons, cake, disposable cups, soft drinks
+  function seedCart(){ sel.clear(); DEMO_BASKET.forEach(i=>sel.set(i,1)); }
+  document.getElementById('reset').onclick=()=>{nav++; missionTotal=0; missionCount=0; lastAlts=[]; spec=null; abody.innerHTML=''; open('false'); resetHead(); seedCart(); updateBill(); showView('cart'); location.hash='';};
+  seedCart(); renderShop(); updateBill();
   const h=location.hash;
-  if(h==='#open'){ open('true'); }
-  else if(h.indexOf('#m=')===0 && MISSIONS[h.slice(3)]){ open('true'); renderMission(h.slice(3)); }
-  else if(h==='#conv'){ open('true'); renderConv(); }
+  if(h==='#conv'){ showView('cart'); open('true'); getKey()?renderConv():renderKeySetup(); }
+  else showView('cart');
 </script>
